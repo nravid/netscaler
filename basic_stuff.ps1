@@ -2,8 +2,9 @@
 *** For-each
 
 
-$files = Get-ChildItem H:\NS-Migration
-ForEach-Object ($name in $files) {echo $name.name}
+$files = Get-ChildItem D:\vmware
+
+ForEach ($name in $files) {echo $name.name}
 
 
 Get-ChildItem H:\NS-Migration | ForEach-Object -Process {echo $_.name}
