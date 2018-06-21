@@ -3,11 +3,11 @@
 $AllProtocols = [System.Net.SecurityProtocolType]'Tls12'
 [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
 
-*** TRM EXT
+*** LAB VPX
 
-$Nsip = 'nt0pnsext01.aqrcapital.com'
+$Nsip = '192.168.137.20'
 $Credential = Get-Credential
-Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
+Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 
 *** TRM INT
