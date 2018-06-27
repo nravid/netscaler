@@ -1,4 +1,4 @@
-﻿
+
 <#
 Ask for environment ("DEV", "QA1", "STG", "PRD")
 For each DC (TRM, GRN), scan through new VPX LB vServers and extract the list of vServers for that environment
@@ -69,7 +69,7 @@ ForEach ($dc in $dclist) {
             $oldvippayld = @{ }
             $oldvippayld = @{
                              name = $vip.name
-                             }#oldvippayld            Invoke-Nitro -Method GET -Type lbvserver?action=disable -Payload $oldvipdisable
+                             }#oldvippayld
             }#TRY SubString
             Invoke-Nitro -Method POST -Type lbvserver -Action disable -Payload $oldvippayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
         CATCH {
@@ -78,7 +78,8 @@ ForEach ($dc in $dclist) {
 
 
     }#ForEach VIP
-
+    Save-NSConfig
+    Disconnect-NetScaler
 }#ForEach DC
 
 
