@@ -1,0 +1,34 @@
+add authentication vserver AAA-OTP SSL 192.168.137.32 443
+bind authentication vserver AAA-OTP -portaltheme RfWebUI
+bind ssl vserver AAA-OTP -certkeyName anoprop_wild_2017
+
+set lb vserver slitaz-443 -AuthenticationHost otpauth.anoprop.com -Authentication ON 
+
+
+add lb vserver slitaz-443 SSL 192.168.137.24 443 -persistenceType NONE -cltTimeout 180 -AuthenticationHost otpauth.anoprop.com -Authentication ON 
+bind ssl vserver slitaz-443 -certkeyName anoprop_wild_2017
+
+
+add service slitaz slitaz HTTP 80 -gslb NONE -maxClient 0 -maxReq 0 -cip DISABLED -usip NO -useproxyport YES -sp OFF -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB NO -CMP YES
+bind lb vserver slitaz-443 slitaz
+
+
+add authentication ldapAction ldap_srv -serverIP 1.1.1.1 -authTimeout 5 -ldapBase "DC=ANOPROP,DC=COM" -ldapBindDn svcesxacct@anoprop.com -ldapBindDnPassword 8e6730e9bf52a88a4db4ea777aef3f90abeca3cd83bdba6d4b9cf08573beb515 -encrypted -encryptmethod ENCMTHD_3 -ldapLoginName sAMAccountName -groupAttrName memberOf -subAttributeName cn -followReferrals ON
+###add authentication ldapPolicy ldap_pol ns_true ldap_srv
+add authentication Policy ldap_auth_pol -rule true -action ldap_srv
+### User BindDN must have the rights to update the userParameters entry in AD
+
+
+add authentication loginSchema lschema_otp -authenticationSchema "/nsconfig/loginschema/LoginSchema/DualAuthOrOTPRegisterDynamic.xml"
+add authentication loginSchemaPolicy lschema_otp -rule true -action lschema_otp
+
+add authentication ldapAction ldap_otp_srv -serverIP 1.1.1.1 -authTimeout 5 -ldapBase "DC=ANOPROP,DC=COM" -ldapBindDn svcesxacct@anoprop.com -ldapBindDnPassword a670578ab63413375e98300d4bbc20baee4f005ee6c38e12418c242425be60bb -encrypted -encryptmethod ENCMTHD_3 -ldapLoginName sAMAccountName -authentication DISABLED -OTPSecret userParameters
+add authentication Policy ldap_otp_pol -rule true -action ldap_otp_srv
+
+add authentication loginSchema lschema_otp_noschema -authenticationSchema noschema
+add authentication policylabel lschema_otp_noschema -loginSchema lschema_otp_noschema
+bind authentication policylabel lschema_otp_noschema -policyName ldap_otp_pol -priority 10
+
+
+bind authentication vserver AAA-OTP -policy ldap_auth_pol -priority 10 -nextFactor lschema_otp_noschema
+bind authentication vserver AAA-OTP -policy ldap_otp_pol -priority 10 
