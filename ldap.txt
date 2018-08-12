@@ -28,12 +28,12 @@ add dns nameServer 10.255.0.2
 
 
 ###Auth
-add authentication ldapAction ldap.aqrcapital.com -serverIP 10.30.44.104 -serverPort 636 -ldapBase "dc=AQRCAPITAL,dc=com" -ldapBindDn ns_ldap@aqrcapital.com -ldapBindDnPassword 6c7563a6b359ecc3f12a0d40e6dd247f5b229918cdffe91f22f7810128f458f2 -encrypted -encryptmethod ENCMTHD_3 -ldapLoginName sAMAccountName -groupAttrName memberOf -subAttributeName cn -secType SSL -ssoNameAttribute sAMAccountName
-add authentication ldapPolicy ldap.aqrcapital.com ns_true ldap.aqrcapital.com
+add authentication ldapAction ldap.foobar.com -serverIP 10.30.44.104 -serverPort 636 -ldapBase "dc=foobar,dc=com" -ldapBindDn ns_ldap@foobar.com -ldapBindDnPassword 6c7563a6b359ecc3f12a0d40e6dd247f5b229918cdffe91f22f7810128f458f2 -encrypted -encryptmethod ENCMTHD_3 -ldapLoginName sAMAccountName -groupAttrName memberOf -subAttributeName cn -secType SSL -ssoNameAttribute sAMAccountName
+add authentication ldapPolicy ldap.foobar.com ns_true ldap.foobar.com
 
-add authentication ldapAction ldap.aqrcapital.com-groupfilter -serverIP 10.30.44.104 -serverPort 636 -ldapBase "dc=AQRCAPITAL,dc=com" -ldapBindDn ns_ldap@aqrcapital.com -ldapBindDnPassword 399d4f50f45ea45c7935646d52491de67dbef5099d172b383e413e6a96aefa17 -encrypted -encryptmethod ENCMTHD_3 -ldapLoginName sAMAccountName -searchFilter "&(|(memberof=CN=ENT_Netscaler_Admins,OU=Security,OU=AQR Groups,OU=AQR Users,DC=aqrcapital,DC=com)(memberof=CN=ENT_Netscaler_RO,OU=Security,OU=AQR Groups,OU=AQR Users,DC=aqrcapital,DC=com))" -groupAttrName memberOf -subAttributeName cn -secType SSL -ssoNameAttribute sAMAccountName -passwdChange ENABLED
-add authentication ldapPolicy ldap.aqrcapital.com-groupfilter ns_true ldap.aqrcapital.com-groupfilter
-bind system global ldap.aqrcapital.com-groupfilter -priority 110
+add authentication ldapAction ldap.foobar.com-groupfilter -serverIP 10.30.44.104 -serverPort 636 -ldapBase "dc=foobar,dc=com" -ldapBindDn ns_ldap@foobar.com -ldapBindDnPassword 399d4f50f45ea45c7935646d52491de67dbef5099d172b383e413e6a96aefa17 -encrypted -encryptmethod ENCMTHD_3 -ldapLoginName sAMAccountName -searchFilter "&(|(memberof=CN=ENT_Netscaler_Admins,OU=Security,OU=abc Groups,OU=abc Users,DC=foobar,DC=com)(memberof=CN=ENT_Netscaler_RO,OU=Security,OU=abc Groups,OU=abc Users,DC=foobar,DC=com))" -groupAttrName memberOf -subAttributeName cn -secType SSL -ssoNameAttribute sAMAccountName -passwdChange ENABLED
+add authentication ldapPolicy ldap.foobar.com-groupfilter ns_true ldap.foobar.com-groupfilter
+bind system global ldap.foobar.com-groupfilter -priority 110
 
 add system group ENT_Netscaler_Admins
 bind system group ENT_Netscaler_Admins -policyName superuser 100
@@ -41,10 +41,10 @@ bind system group ENT_Netscaler_Admins -policyName superuser 100
 add snmp community zenoss ALL
 add snmp community public ALL
 add snmp manager 10.31.18.85
-add snmp manager st0pzenrn01.aqrcapital.com -netmask 0.0.0.0 -domainResolveRetry 5
-add snmp manager st0pzenrn02.aqrcapital.com -netmask 0.0.0.0 -domainResolveRetry 5
-add snmp manager st0pzenrn03.aqrcapital.com -netmask 0.0.0.0 -domainResolveRetry 5
-add snmp manager st0pzenrn04.aqrcapital.com -netmask 0.0.0.0 -domainResolveRetry 5
+add snmp manager st0pzenrn01.foobar.com -netmask 0.0.0.0 -domainResolveRetry 5
+add snmp manager st0pzenrn02.foobar.com -netmask 0.0.0.0 -domainResolveRetry 5
+add snmp manager st0pzenrn03.foobar.com -netmask 0.0.0.0 -domainResolveRetry 5
+add snmp manager st0pzenrn04.foobar.com -netmask 0.0.0.0 -domainResolveRetry 5
 add snmp trap generic 10.31.18.85 -communityName public
 add snmp trap generic 10.31.102.103 -communityName public -allPartitions ENABLED
 add snmp trap specific 10.31.18.85 -communityName public
@@ -79,20 +79,20 @@ add audit syslogPolicy grn_syslog ns_true grn_syslog_tcp
 
 
 ###SSL Certificate
-add ssl certKey aqrcapital.com_issuing -cert subca.aqrcapital.com.cer -expiryMonitor ENABLED -notificationPeriod 90
-add ssl certKey aqrcapital.com_root -cert root.aqrcapital.com.cer -expiryMonitor ENABLED -notificationPeriod 90
-link ssl certKey aqrcapital.com_issuing aqrcapital.com_root
+add ssl certKey foobar.com_issuing -cert subca.foobar.com.cer -expiryMonitor ENABLED -notificationPeriod 90
+add ssl certKey foobar.com_root -cert root.foobar.com.cer -expiryMonitor ENABLED -notificationPeriod 90
+link ssl certKey foobar.com_issuing foobar.com_root
 
 
-add ssl certKey wildcard.dev.aqrcapital.com -cert wildcard.dev.aqrcapital.com.pfx -key wildcard.dev.aqrcapital.com.pfx -inform PFX -passcrypt "JYCAggm/vC4=" -expiryMonitor ENABLED -notificationPeriod 90
-link ssl certKey wildcard.dev.aqrcapital.com aqrcapital.com_issuing
+add ssl certKey wildcard.dev.foobar.com -cert wildcard.dev.foobar.com.pfx -key wildcard.dev.foobar.com.pfx -inform PFX -passcrypt "JYCAggm/vC4=" -expiryMonitor ENABLED -notificationPeriod 90
+link ssl certKey wildcard.dev.foobar.com foobar.com_issuing
 
 ###SSL Cipher
-add ssl cipher AQR_Default_VPX
-bind ssl cipher AQR_Default_VPX -cipherName TLS1.2-ECDHE-RSA-AES-128-SHA256 -cipherPriority 1
-bind ssl cipher AQR_Default_VPX -cipherName TLS1-ECDHE-RSA-AES128-SHA -cipherPriority 2
-bind ssl cipher AQR_Default_VPX -cipherName TLS1-ECDHE-RSA-AES256-SHA -cipherPriority 3
-bind ssl cipher AQR_Default_VPX -cipherName TLS1-DHE-RSA-AES-256-CBC-SHA -cipherPriority 4
-bind ssl cipher AQR_Default_VPX -cipherName TLS1-DHE-RSA-AES-128-CBC-SHA -cipherPriority 5
-bind ssl cipher AQR_Default_VPX -cipherName TLS1-AES-256-CBC-SHA -cipherPriority 6
-bind ssl cipher AQR_Default_VPX -cipherName TLS1-AES-128-CBC-SHA -cipherPriority 7
+add ssl cipher abc_Default_VPX
+bind ssl cipher abc_Default_VPX -cipherName TLS1.2-ECDHE-RSA-AES-128-SHA256 -cipherPriority 1
+bind ssl cipher abc_Default_VPX -cipherName TLS1-ECDHE-RSA-AES128-SHA -cipherPriority 2
+bind ssl cipher abc_Default_VPX -cipherName TLS1-ECDHE-RSA-AES256-SHA -cipherPriority 3
+bind ssl cipher abc_Default_VPX -cipherName TLS1-DHE-RSA-AES-256-CBC-SHA -cipherPriority 4
+bind ssl cipher abc_Default_VPX -cipherName TLS1-DHE-RSA-AES-128-CBC-SHA -cipherPriority 5
+bind ssl cipher abc_Default_VPX -cipherName TLS1-AES-256-CBC-SHA -cipherPriority 6
+bind ssl cipher abc_Default_VPX -cipherName TLS1-AES-128-CBC-SHA -cipherPriority 7

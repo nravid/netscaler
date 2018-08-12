@@ -1,13 +1,13 @@
 ﻿
 *** TRM OLD ***
-$Nsip = 'nt0pnsint01.aqrcapital.com'
+$Nsip = 'nt0pnsint01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 
 
 *** GRN OLD ***
-$Nsip = 'ng0pnsint01.aqrcapital.com'
+$Nsip = 'ng0pnsint01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential
 

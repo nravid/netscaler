@@ -52,7 +52,7 @@ ForEach ($fqdn in $envlist) {
 
     $dcinit = $null
     $dcinit = ($dc.Substring(0,1))
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foobar.com'
     
     $oldgslbsvcname = $fqdn.name + "_gslb_svc_" + $dc
 
@@ -72,14 +72,14 @@ ForEach ($fqdn in $envlist) {
     Disconnect-NetScaler
 
         $NEWNsip = $null
-        $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.aqrcapital.com'
+        $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.foobar.com'
         $gslbdomname = $null
         $gslbvipname = $null
         $gslbvippayld = $null
         $gslbdompayld = $null
         $gslbdomname = $null
         $gslbvipname = $fqdn.name + "_gslb_vip_" + $dc 
-        $gslbdomname = $fqdn.name -replace ".aqrcapital.com", ".int.aqrcapital.com"
+        $gslbdomname = $fqdn.name -replace ".foobar.com", ".int.foobar.com"
 
         $gslbviphashtbl = @{ }
         $gslbviphashtbl.Set_Item("name",$gslbvipname)
@@ -121,7 +121,7 @@ ForEach ($fqdn in $envlist) {
         $dcnewinit = $null
         $dcnewinit = ($dcnew.Substring(0,1))
         $NEWNsip = $null
-        $NEWNsip = 'n' + $dcnewinit + '0' + $envinit + 'nsinty01.aqrcapital.com'
+        $NEWNsip = 'n' + $dcnewinit + '0' + $envinit + 'nsinty01.foobar.com'
         "$(Get-TimeStamp) Connect to " + $NEWNsip | Out-File -filepath $outputfile -Append -Encoding ascii
         Connect-NetScaler -Hostname $NEWNsip -Credential $Credential -HTTPS
 
@@ -224,11 +224,11 @@ ForEach ($fqdn in $envlist) {
       } #ForEach DCNew
   } #ForEach FQDN
 
-Connect-NetScaler -Hostname nt0snsinty01.aqrcapital.com -Credential $Credential -HTTPS
+Connect-NetScaler -Hostname nt0snsinty01.foobar.com -Credential $Credential -HTTPS
 Save-NSConfig
 Disconnect-NetScaler
 
 
-Connect-NetScaler -Hostname ng0snsinty01.aqrcapital.com -Credential $Credential -HTTPS
+Connect-NetScaler -Hostname ng0snsinty01.foobar.com -Credential $Credential -HTTPS
 Save-NSConfig
 Disconnect-NetScaler

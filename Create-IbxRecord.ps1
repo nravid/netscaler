@@ -5,7 +5,7 @@
     .DESCRIPTION
         Create an infoblox Host, A, CName, PTR record based on the criteria passed in. 
         This script requires Get-IbxRecord to function
-            - Found Here: http://aqrgit.aqrcapital.com/orourkem/Powershell/blob/master/Get-IbxRecord.ps1
+            - Found Here: http://abcgit.foobar.com/orourkem/Powershell/blob/master/Get-IbxRecord.ps1
     .PARAMETER %PARAM%
         $Credential    - A PSCredential Object
         $RecordType    - Type of record (A or CName)
@@ -17,7 +17,7 @@
           
     .EXAMPLE
     .NOTES
-        * Original Author         : Mike O'Rourke - Mike.ORourke@aqr.com
+        * Original Author         : Mike O'Rourke - Mike.ORourke@abc.com
         * Module Version Number   : 1.0
         * Date of Creation        : 3/22/2018
         * Date of Latest Update   : 3/22/2018
@@ -29,7 +29,7 @@
                                     ~ 2017.0615.01: * Template identifier (Do not Remove this flag)
                                                     * Updated the Global variables to be script / function specific.
     .LINK
-         http://aqrgit.aqrcapital.com/orourkem/Powershell/blob/master/Create-IbxRecord.ps1
+         http://abcgit.foobar.com/orourkem/Powershell/blob/master/Create-IbxRecord.ps1
 #>
 
 ##End Help Section##
@@ -68,7 +68,7 @@ Function Create-IbxRecord
                     ValueFromPipeline=$false,
                     ValueFromPipelineByPropertyName=$true,
                     Position=0)]
-                    [ValidateSet(".aqrcapital.com", ".aqr.com", ".aqrcapital.dmz")]
+                    [ValidateSet(".foobar.com", ".abc.com", ".foobar.dmz")]
         [string] $Domain,
 
         [Parameter(Mandatory=$false,
@@ -113,7 +113,7 @@ if (($Credential -eq "") -or ($Credential -eq $null)) {
 #endregion
 
 #region -- Static Variables
-$InfobloxURLEndpoint = "https://ibxgridmaster.aqrcapital.com/wapi/v2.5/"
+$InfobloxURLEndpoint = "https://ibxgridmaster.foobar.com/wapi/v2.5/"
 #endregion
 
 # Check record type

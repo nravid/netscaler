@@ -1,7 +1,7 @@
 ﻿
 $datactr = "trm"
 
-$Nsip = 'nt0pnsint01.aqrcapital.com'
+$Nsip = 'nt0pnsint01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
@@ -9,7 +9,7 @@ Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 $datactr = "grn"
 
-$Nsip = 'ng0pnsint01.aqrcapital.com'
+$Nsip = 'ng0pnsint01.foobar.com'
 $SecurePassword = ConvertTo-SecureString 'HH!qDpk)8S4L' -AsPlainText -Force
 $Credential = New-Object System.Management.Automation.PSCredential ("nsroot", $SecurePassword)
 Connect-NetScaler -Hostname $Nsip -Credential $Credential

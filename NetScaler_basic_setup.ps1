@@ -243,7 +243,7 @@ ForEach ($snmpc in $snmpcomms){
 
 #SNMP Managers
 "$(Get-TimeStamp) ADD SNMP Managers" | Out-File -filepath $logfile -Append -Encoding ascii
-$snmpmgrs = @("10.31.18.85", "st0pzenrn01.aqrcapital.com", "st0pzenrn02.aqrcapital.com", "st0pzenrn02.aqrcapital.com", "st0pzenrn04.aqrcapital.com")
+$snmpmgrs = @("10.31.18.85", "st0pzenrn01.foobar.com", "st0pzenrn02.foobar.com", "st0pzenrn02.foobar.com", "st0pzenrn04.foobar.com")
 
 ForEach ($snmpm in $snmpmgrs){
     "$(Get-TimeStamp) Add SNMP Manager " + $snmpm | Out-File -filepath $logfile -Append -Encoding ascii
@@ -344,7 +344,7 @@ CATCH {
 "$(Get-TimeStamp) ADD Audit NetProfile" | Out-File -filepath $logfile -Append -Encoding ascii
 $netprfpayld = @{ }
 $netprfpayld = @{
-                name = "aqr_syslog_netprf"
+                name = "abc_syslog_netprf"
                 srcip = $NEWSNIP
                 srcippersistency = "ENABLED"
                 }#netprfpayld
@@ -359,7 +359,7 @@ CATCH {
 "$(Get-TimeStamp) ADD Audit SysLog Action" | Out-File -filepath $logfile -Append -Encoding ascii
 $audactpayld = @{ }
 $audactpayld = @{
-                name = "aqr_syslog_audact"
+                name = "abc_syslog_audact"
                 serverip = "10.30.19.60"
                 loglevel = "ALL"
                 logfacility = "LOCAL3"
@@ -367,7 +367,7 @@ $audactpayld = @{
                 userdefinedauditlog = "YES"
                 transport = "TCP"
                 maxlogdatasizetohold = "50"
-                netprofile = "aqr_syslog_netprf"
+                netprofile = "abc_syslog_netprf"
                 }#audactpayld
 TRY {
     Invoke-Nitro -Method POST -Type auditsyslogaction -Payload $audactpayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
@@ -380,9 +380,9 @@ CATCH {
 "$(Get-TimeStamp) ADD Audit SysLog Policy" | Out-File -filepath $logfile -Append -Encoding ascii
 $audpolpayld = @{ }
 $audpolpayld = @{
-                name = "aqr_syslog_audpol"
+                name = "abc_syslog_audpol"
                 rule = "ns_true"
-                action = "aqr_syslog_audact"
+                action = "abc_syslog_audact"
                 }#audpolpayld
 TRY {
     Invoke-Nitro -Method POST -Type auditsyslogpolicy -Payload $audpolpayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
@@ -393,7 +393,7 @@ CATCH {
 
 #SSL Ciphers
 "$(Get-TimeStamp) ADD SSL Ciphers" | Out-File -filepath $logfile -Append -Encoding ascii
-$ciphers = @("aqr-cipher-high_frontend", "aqr-cipher-high_backend")
+$ciphers = @("abc-cipher-high_frontend", "abc-cipher-high_backend")
 $ciphernames = @("TLS1.2-ECDHE-RSA-AES-256-SHA384", "TLS1.2-ECDHE-RSA-AES-128-SHA256", "TLS1.2-DHE-RSA-AES256-GCM-SHA384", "TLS1.2-DHE-RSA-AES128-GCM-SHA256", "TLS1.2-ECDHE-RSA-AES256-GCM-SHA384", "TLS1.2-AES-256-SHA256", "TLS1.2-AES-128-SHA256","TLS1.2-AES256-GCM-SHA384", "TLS1.2-AES128-GCM-SHA256", "TLS1.2-ECDHE-ECDSA-AES256-SHA384", "TLS1.2-ECDHE-ECDSA-AES128-SHA256", "TLS1.2-ECDHE-ECDSA-AES256-GCM-SHA384", "TLS1.2-ECDHE-ECDSA-AES128-GCM-SHA256", "TLS1.2-DHE-RSA-AES-256-SHA256", "TLS1.2-DHE-RSA-AES-128-SHA256", "TLS1.2-ECDHE-RSA-AES128-GCM-SHA256")
 
 ForEach ($cipher in $ciphers){
@@ -428,11 +428,11 @@ ForEach ($cipher in $ciphers){
 "$(Get-TimeStamp) ADD LDAP Authentication Action" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapactpayld = @{ }
 $ldapactpayld = @{
-                name = "ldap.aqrcapital.com_authact"
+                name = "ldap.foobar.com_authact"
                 serverip = "10.30.44.104"
                 serverport = "636"
-                ldapbase = "dc=AQRCAPITAL,dc=com"
-                ldapbinddn = "ns_ldap@aqrcapital.com"
+                ldapbase = "dc=foobar,dc=com"
+                ldapbinddn = "ns_ldap@foobar.com"
                 ldapbinddnpassword = "6c7563a6b359ecc3f12a0d40e6dd247f5b229918cdffe91f22f7810128f458f2"
                 ldaploginname = "sAMAccountName"
                 groupattrname = "memberOf"
@@ -451,9 +451,9 @@ CATCH {
 "$(Get-TimeStamp) ADD LDAP Authentication Policy" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldappolpayld = @{ }
 $ldappolpayld = @{
-                name = "ldap.aqrcapital.com_authpol"
+                name = "ldap.foobar.com_authpol"
                 rule = "ns_true"
-                reqaction = "ldap.aqrcapital.com_authact"
+                reqaction = "ldap.foobar.com_authact"
                 }#ldappolpayld
 TRY {
     Invoke-Nitro -Method POST -Type authenticationldappolicy -Payload $ldappolpayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
@@ -466,18 +466,18 @@ CATCH {
 "$(Get-TimeStamp) ADD LDAP Authentication Administration Action" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapadapayld = @{ }
 $ldapadapayld = @{
-                name = "ldap.aqrcapital.com_admin_authact"
+                name = "ldap.foobar.com_admin_authact"
                 serverip = "10.30.44.104"
                 serverport = "636"
-                ldapbase = "dc=AQRCAPITAL,dc=com"
-                ldapbinddn = "ns_ldap@aqrcapital.com"
+                ldapbase = "dc=foobar,dc=com"
+                ldapbinddn = "ns_ldap@foobar.com"
                 ldapbinddnpassword = "6c7563a6b359ecc3f12a0d40e6dd247f5b229918cdffe91f22f7810128f458f2"
                 ldaploginname = "sAMAccountName"
                 groupattrname = "memberOf"
                 subattributename = "cn"
                 sectype = "SSL"
                 ssonameattribute = "sAMAccountName"
-                searchfilter = "&(|(memberof=CN=ENT_Netscaler_Admins,OU=Security,OU=AQR Groups,OU=AQR Users,DC=aqrcapital,DC=com)(memberof=CN=ENT_Netscaler_RO,OU=Security,OU=AQR Groups,OU=AQR Users,DC=aqrcapital,DC=com))"
+                searchfilter = "&(|(memberof=CN=ENT_Netscaler_Admins,OU=Security,OU=abc Groups,OU=abc Users,DC=foobar,DC=com)(memberof=CN=ENT_Netscaler_RO,OU=Security,OU=abc Groups,OU=abc Users,DC=foobar,DC=com))"
                 }#ldapadapayld
 TRY {
     Invoke-Nitro -Method POST -Type authenticationldapaction -Payload $ldapadapayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
@@ -490,9 +490,9 @@ CATCH {
 "$(Get-TimeStamp) ADD LDAP Authentication Administration Policy" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapadppayld = @{ }
 $ldapadppayld = @{
-                name = "ldap.aqrcapital.com_admin_authpol"
+                name = "ldap.foobar.com_admin_authpol"
                 rule = "ns_true"
-                reqaction = "ldap.aqrcapital.com_admin_authact"
+                reqaction = "ldap.foobar.com_admin_authact"
                 }#ldapadppayld
 TRY {
     Invoke-Nitro -Method POST -Type authenticationldappolicy -Payload $ldapadppayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
@@ -505,7 +505,7 @@ CATCH {
 "$(Get-TimeStamp) BIND LDAP Authentication Administration Policy" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapbndpayld = @{ }
 $ldapbndpayld = @{
-                napolicynameme = "ldap.aqrcapital.com_admin_authpol"
+                napolicynameme = "ldap.foobar.com_admin_authpol"
                 priority = "100"
                 }#ldapbndpayld
 TRY {

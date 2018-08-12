@@ -50,9 +50,9 @@ ForEach ($dc in $dclist) {
     $dcinit = ($dc.Substring(0,1))
 
     $NEWNsip = $null
-    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.aqrcapital.com'
+    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.foobar.com'
     $OLDNsip = $null
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foobar.com'
 
     "$(Get-TimeStamp) CONNECT: " + $NEWNsip | Out-File -filepath $outputfile -Append -Encoding ascii
     Connect-NetScaler -Hostname $NewNsip -Credential $Credential -HTTPS
@@ -130,9 +130,9 @@ ForEach ($dc in $dclist) {
 
             $pos = $null
             $left = $null
-            $pos = $vip.name.indexof(".aqrcap")
+            $pos = $vip.name.indexof(".abccap")
             $left = $vip.name.substring(0, $pos)
-            $gslbdomname = $left + ".int.aqrcapital.com"
+            $gslbdomname = $left + ".int.foobar.com"
 
 
             $gslbdomtype = "gslbvserver_domain_binding/" + $gslbvipname + "?args=" + $gslbdomname

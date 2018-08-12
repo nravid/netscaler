@@ -75,8 +75,8 @@ ForEach ($fqdn in $envlist) {
     $vipextension = $null
 
     $dcinit = ($dc.Substring(0,1))
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
-    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foobar.com'
+    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.foobar.com'
 
     IF ($dc -eq "trm") {
         $newipaddr = $trmpref + $fqdn.trmip
@@ -293,12 +293,12 @@ ForEach ($fqdn in $envlist) {
 #Update InfoBlox with Appropriate PTR Record
             $ptrpos = $null
             $ptrhost = $null
-            $ptrpos = $oldvserver.lbvserver.name.indexof(".aqrcapital")
+            $ptrpos = $oldvserver.lbvserver.name.indexof(".foobar")
             $ptrhost = $oldvserver.lbvserver.name.substring(0, $ptrpos) + ".int"
 
             "$(Get-TimeStamp) CREATE: New PTR Record " + $oldvserver.lbvserver.name | Out-File -filepath $outputfile -Append -Encoding ascii
             TRY {
-                Create-IbxRecord -Credential $Credential -RecordType PTR -ComputerName $ptrhost -Domain .aqrcapital.com -IPv4Address $newipaddr -Force Force -Confirm -ErrorAction Continue | Out-File -filepath $outputfile -Append -Encoding ascii
+                Create-IbxRecord -Credential $Credential -RecordType PTR -ComputerName $ptrhost -Domain .foobar.com -IPv4Address $newipaddr -Force Force -Confirm -ErrorAction Continue | Out-File -filepath $outputfile -Append -Encoding ascii
             }#TRY Create IBX Record
             CATCH {
                   "$(Get-TimeStamp) FAILED: Create New PTR Record for " + $oldvserver.lbvserver.name + " " + $_.Exception.Message | Out-File -filepath $outputfile -Append -Encoding ascii
@@ -310,11 +310,11 @@ ForEach ($fqdn in $envlist) {
                 $newsslprfpayld = @{ }
                 $newsslprfpayld = @{
                                    vservername = $oldvserver.lbvserver.name
-                                   sslprofile = "aqr_default_ssl_profile_frontend"
+                                   sslprofile = "abc_default_ssl_profile_frontend"
                 }#newsslprfpayld
 	    		TRY {
       			    Invoke-Nitro -Method PUT -Type sslvserver -Payload $newsslprfpayld -OnErrorAction CONTINUE -Confirm -Force
-#	    			Set-NSLBSSLVirtualServerProfile -Name $oldvserver.lbvserver.name -SSLProfile aqr_default_ssl_profile_frontend -ErrorAction CONTINUE -Confirm
+#	    			Set-NSLBSSLVirtualServerProfile -Name $oldvserver.lbvserver.name -SSLProfile abc_default_ssl_profile_frontend -ErrorAction CONTINUE -Confirm
 		    	}#TRY SSL Set Profile
 			    CATCH {
                   "$(Get-TimeStamp) FAILED: Set SSL Profile for " + $oldvserver.lbvserver.name + " " + $_.Exception.Message | Out-File -filepath $outputfile -Append -Encoding ascii
@@ -472,7 +472,7 @@ ForEach ($fqdn in $envlist) {
                     $newsvgsslpayld = @{ }
                     $newsvgsslpayld = @{
                                         servicegroupname = $newsvgname
-                                        sslprofile = "aqr_default_ssl_profile_backend"
+                                        sslprofile = "abc_default_ssl_profile_backend"
                                         } #newsvgsslpayld
                     "$(Get-TimeStamp) BIND: ServiceGroup SSL Profile " + $newsvgname | Out-File -filepath $outputfile -Append -Encoding ascii
     			    TRY {

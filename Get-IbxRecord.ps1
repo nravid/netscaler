@@ -19,7 +19,7 @@
         Get-IbxRecord -Credential $Credential -RecordType PTR -SearchText $ComputerName
 
     .NOTES
-        * Original Author         : Mike O'Rourke - Mike.ORourke@aqr.com
+        * Original Author         : Mike O'Rourke - Mike.ORourke@abc.com
         * Module Version Number   : 2.0
         * Date of Creation        : 3/22/2018
         * Date of Latest Update   : 5/22/2018
@@ -32,7 +32,7 @@
                                                     * Updated the Global variables to be script / function specific.
 
     .LINK
-         http://aqrgit.aqrcapital.com/orourkem/Powershell/blob/master/Get-IbxRecord.ps1
+         http://abcgit.foobar.com/orourkem/Powershell/blob/master/Get-IbxRecord.ps1
 
 #>
 
@@ -91,7 +91,7 @@ if (($Credential -eq "") -or ($Credential -eq $null)) {
 #endregion
 
 #region -- Static Variables
-$InfobloxURLEndpoint = "https://ibxgridmaster.aqrcapital.com/wapi/v2.5/"
+$InfobloxURLEndpoint = "https://ibxgridmaster.foobar.com/wapi/v2.5/"
 #endregion
 
 #region -- Get record ibx

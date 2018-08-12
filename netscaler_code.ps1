@@ -12,35 +12,35 @@ Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 *** TRM INT
 
-$Nsip = 'nt0pnsint01.aqrcapital.com'
+$Nsip = 'nt0pnsint01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 
 *** GRN INT
-$Nsip = 'ng0pnsint01.aqrcapital.com'
+$Nsip = 'ng0pnsint01.foobar.com'
 $SecurePassword = ConvertTo-SecureString 'HH!qDpk)8S4L' -AsPlainText -Force
 $Credential = New-Object System.Management.Automation.PSCredential ("nsroot", $SecurePassword)
 Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 
 *** TRM QA INT
-$Nsip = 'nt0qnsinty01.aqrcapital.com'
+$Nsip = 'nt0qnsinty01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
 *** GRN DEV INT
-$Nsip = 'ng0dnsinty01.aqrcapital.com'
+$Nsip = 'ng0dnsinty01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
 *** GRN STG INT
-$Nsip = 'ng0snsinty01.aqrcapital.com'
+$Nsip = 'ng0snsinty01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
 *** GRN QA INT
-$Nsip = 'ng0qnsinty01.aqrcapital.com'
+$Nsip = 'ng0qnsinty01.foobar.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
@@ -73,11 +73,11 @@ $nate = Get-NSLBServiceGroup | Where-Object {$_.servicegroupname -like '*.dev*'}
 $nate.servicegroupname | Get-NSLBServiceGroupMonitorBinding | Select-Object -Unique monitor_name
 
 
-$RestURI = "http://"+$Nsip+"/nitro/v1/config/gslbvserver/remoteprintipgs.aqrcapital.com_gslb_vip_trm?attrs=name,servicetype"
+$RestURI = "http://"+$Nsip+"/nitro/v1/config/gslbvserver/remoteprintipgs.foobar.com_gslb_vip_trm?attrs=name,servicetype"
 Invoke-RestMethod -Uri $RestURI -Credential $credential
  
 
-$nateget = Invoke-Nitro -Method GET -Type gslbvserver -Resource remoteprintipgs.aqrcapital.com_gslb_vip_trm | Select-Object gslbvserver
+$nateget = Invoke-Nitro -Method GET -Type gslbvserver -Resource remoteprintipgs.foobar.com_gslb_vip_trm | Select-Object gslbvserver
 $nateget.gslbvserver
 
 
@@ -102,11 +102,11 @@ foreach( $ip in $ipaddresses) {
 Write-Host "Pinging Completed."
 
 
-Invoke-Nitro -Method GET -Type appfwlearningdata -Arguments profilename:sso.aqr.com_waf_prf,starturl
+Invoke-Nitro -Method GET -Type appfwlearningdata -Arguments profilename:sso.abc.com_waf_prf,starturl
 
 Get-NSIPResource | Select-Object -Unique ipaddress | Export-Csv -NoTypeInformation H:\NS-Migration\TRM-IPADDR.csv
 
 
 
-Get-IBResourceRecord -Credential $Credential -GridServer ibxgridmaster.aqrcapital.com -SearchText itseclog.aqrcapital.com -Type CName
+Get-IBResourceRecord -Credential $Credential -GridServer ibxgridmaster.foobar.com -SearchText itseclog.foobar.com -Type CName
 

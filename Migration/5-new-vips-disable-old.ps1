@@ -39,9 +39,9 @@ ForEach ($dc in $dclist) {
     $dcinit = ($dc.Substring(0,1))
 
     $OLDNsip = $null
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foobar.com'
     $NEWNsip = $null
-    $NEWNsip = 'n' + $dcinit + '0' + $dcinit + 'nsinty01.aqrcapital.com'
+    $NEWNsip = 'n' + $dcinit + '0' + $dcinit + 'nsinty01.foobar.com'
 
     "$(Get-TimeStamp) CONNECT to " + $NEWNsip | Out-File -filepath $logfile -Append -Encoding ascii
 
