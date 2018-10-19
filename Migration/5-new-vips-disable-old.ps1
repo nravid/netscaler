@@ -1,4 +1,4 @@
-
+﻿
 <#
 Ask for environment ("DEV", "QA1", "STG", "PRD")
 For each DC (TRM, GRN), scan through new VPX LB vServers and extract the list of vServers for that environment
@@ -39,9 +39,9 @@ ForEach ($dc in $dclist) {
     $dcinit = ($dc.Substring(0,1))
 
     $OLDNsip = $null
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.foobar.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
     $NEWNsip = $null
-    $NEWNsip = 'n' + $dcinit + '0' + $dcinit + 'nsinty01.foobar.com'
+    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.aqrcapital.com'
 
     "$(Get-TimeStamp) CONNECT to " + $NEWNsip | Out-File -filepath $logfile -Append -Encoding ascii
 
@@ -70,8 +70,8 @@ ForEach ($dc in $dclist) {
             $oldvippayld = @{
                              name = $vip.name
                              }#oldvippayld
-            }#TRY SubString
             Invoke-Nitro -Method POST -Type lbvserver -Action disable -Payload $oldvippayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
+            }#TRY SubString
         CATCH {
               "$(Get-TimeStamp) FAILED DISABLE VIP " + $vip.name + " from " + $OLDNsip + " " + $_.Exception.Message | Out-File -filepath $logfile -Append -Encoding ascii
         }#CATCH SubString
