@@ -1,9 +1,9 @@
 ﻿
 
-$BigTRMsession = Connect-NetScaler -Credential $adm -Hostname "nt0pnsint.aqrcapital.com" -Https -PassThru
-$SmallTRMsession = Connect-NetScaler -Credential $adm -Hostname "nt0pnsinty.aqrcapital.com" -Https -PassThru
-$BigGRNsession = Connect-NetScaler -Credential $adm -Hostname "ng0pnsint.aqrcapital.com" -Https -PassThru
-$SmallGRNsession = Connect-NetScaler -Credential $adm -Hostname "ng0pnsinty.aqrcapital.com" -Https -PassThru
+$BigTRMsession = Connect-NetScaler -Credential $credential -Hostname "nt0pnsint.aqrcapital.com" -Https -PassThru
+$SmallTRMsession = Connect-NetScaler -Credential $credential -Hostname "nt0pnsinty.aqrcapital.com" -Https -PassThru
+$BigGRNsession = Connect-NetScaler -Credential $credential -Hostname "ng0pnsint.aqrcapital.com" -Https -PassThru
+$SmallGRNsession = Connect-NetScaler -Credential $credential -Hostname "ng0pnsinty.aqrcapital.com" -Https -PassThru
 
 Function CheckNetScalers($session1, $session2){
     Write-Host "Checking number of GSLB Domains with prd.int.aqrcapital.com"
