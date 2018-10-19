@@ -1,0 +1,83 @@
+
+index=netscaler eventtype=app-fw | rex field=_raw "msg=(?<msg>.*)cn1.*cs1=(?<cs1>.*)cs2.*act=(?<act>.*)" | top msg,cs1,act
+
+
+set appfw profile airwatch_seg_waf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile www_waf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile dispatcher.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile easmailprod-relay_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile services.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile solr-dmz.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile sso.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile staging.qa2.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile textguard.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile ucits.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+set appfw profile web.aqr.com_waf_prf -starturLclosure OFF -refererHeaderCheck off
+
+
+^(?i)[\x26\x3C\x3E\x2B\x2F\x2D\x3D\dA-Za-z]+$
+^[\x26\x2B\x2F\x2D\x3D\dA-Za-z]+$
+
+^(?i)https://(|plmobilecert|plmobile|plmobilecerttest|plmobiltest)\.aqr\.com/account.*$
+^(?i)https://(|plmobilecert|plmobile|plmobilecerttest|plmobiletest)\.aqr\.com/content.*$
+^(?i)https://(|plmobilecert|plmobile|plmobilecerttest|plmobiletest)\.aqr\.com/scripts.*$
+
+rm appfw learningdata solr-dmz.aqr.com_waf_prf
+
+sho appfw learningdata dispatcher.aqr.com_waf_prf startURL | grep -v Hits
+
+set appfw profile plmobilecert.aqr.com_waf_prf -multipleHeaderAction Log
+
+/netscaler/aslearn -start -f /netscaler/aslearn.conf
+
+^(?i)https://(sso|sso\-dev|host305)\.aqr\.com
+
+^https://dispatcher\.(prd|dev)\.aqr\.com/api/service/dispatch.*$
+
+NetScaler App Firewall preventing file uploads:
+
+Final Resolution: "-streaming ON" resolved issue
+
+nsapimgr -d allvariables | grep post_body
+ 
+This will give you the current:
+appfw_post_body_scan_limit:     0
+appfw_post_body_extract_formid: 1
+appfw_post_body_yield:  1
+
+
+You can try the following:
+Run command
+nsapimgr -s appfw_post_body_scan_limit=10240
+The above command means POST request larger than 10k bytes are not scanned.
+
+Run command
+nsapimgr -s appfw_post_body_extract_formid=0
+The above command is to make the appfw not strip appfw form tag when we skip the scan due to post body size limit.
+
+appfw_post_body_scan_limit:     10240
+appfw_post_body_extract_formid: 0
+appfw_post_body_yield:  1
+
+set appfw profile services.aqr.com_waf_prf -streaming on
+
+set appfw profile airwatch_seg_waf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile www_waf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile webmail.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile dispatcher.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile easmailprod-relay_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile services.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile solr-dmz.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile sso.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile staging.qa2.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile textguard.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile funds.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile ucits.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile stumblingontruth_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile web.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile access.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile aaa6.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile xmapi.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile australia.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile aaa8.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
+set appfw profile plmobilecert.aqr.com_waf_prf -multipleHeaderAction Log -starturLclosure OFF -refererHeaderCheck off -xmlValidationAction NONE
