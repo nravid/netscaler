@@ -1,0 +1,28 @@
+add lb monitor grn_sf_mon STOREFRONT -scriptName nssf.pl -dispatcherIP 127.0.0.1 -dispatcherPort 3013 -LRTM DISABLED -secure YES -storename GRNStore
+
+add serviceGroup grn_715_storefront_vip SSL -maxClient 0 -maxReq 0 -cacheable YES -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB NO -CMP YES -appflowLog DISABLED
+bind serviceGroup grn_715_storefront_vip VG0PCTXSFT01 443
+bind serviceGroup grn_715_storefront_vip VG0PCTXSFT02 443
+bind serviceGroup grn_715_storefront_vip -monitorName grn_sf_mon
+
+add lb vserver storefront_715_vip_grn SSL 10.30.58.83 443 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180
+bind lb vserver storefront_715_vip_grn grn_715_storefront_vip
+bind ssl vserver storefront_715_vip_grn -certkeyName wildcard.aqrcapital.com_exp2018
+
+
+
+add lb monitor trm_sf_mon STOREFRONT -scriptName nssf.pl -dispatcherIP 127.0.0.1 -dispatcherPort 3013 -LRTM DISABLED -secure YES -storename GRNStore
+
+add serviceGroup trm_715_storefront_vip SSL -maxClient 0 -maxReq 0 -cacheable YES -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB NO -CMP YES -appflowLog DISABLED
+bind serviceGroup trm_715_storefront_vip VT0PCTXSFT01 443
+bind serviceGroup trm_715_storefront_vip VT0PCTXSFT02 443
+bind serviceGroup trm_715_storefront_vip -monitorName trm_sf_mon
+
+add lb vserver storefront_715_vip_trm SSL 10.31.58.83 443 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180
+bind lb vserver storefront_715_vip_trm trm_715_storefront_vip
+bind ssl vserver storefront_715_vip_trm -certkeyName wildcard.aqrcapital.com_exp2018
+
+unbind serviceGroup trm_715_storefront_vip -monitorName trm_sf_mon
+rm lb monitor trm_sf_mon STOREFRONT
+add lb monitor trm_sf_mon STOREFRONT -scriptName nssf.pl -dispatcherIP 127.0.0.1 -dispatcherPort 3013 -LRTM DISABLED -secure YES -storename TRMStore
+bind serviceGroup trm_715_storefront_vip -monitorName trm_sf_mon

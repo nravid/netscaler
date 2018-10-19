@@ -1,0 +1,11 @@
+
+
+add server ADNS 10.30.172.53
+add service ADNS ADNS ADNS 53 -gslb NONE -maxClient 0 -maxReq 0 -cip DISABLED -usip NO -useproxyport NO -sp OFF -cltTimeout 120 -svrTimeout 120 -CKA NO -TCPB YES -CMP NO
+
+add server ADNS 10.64.56.53
+add service ADNS ADNS ADNS 53 -gslb NONE -maxClient 0 -maxReq 0 -cip DISABLED -usip NO -useproxyport NO -sp OFF -cltTimeout 120 -svrTimeout 120 -CKA NO -TCPB YES -CMP NO
+
+
+add gslb site Trumbull LOCAL 10.64.56.16 -publicIP 10.64.56.16
+add gslb site Greenwich REMOTE 10.30.172.16 -publicIP 10.30.172.16

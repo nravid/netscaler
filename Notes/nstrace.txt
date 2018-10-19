@@ -1,0 +1,42 @@
+index=netscaler source="/logdata/NetScaler/nt0pnsext.log"  SSLVPN (ICAEND OR ICASTART OR TCU_DHT)
+
+CONNECTION.SRCIP.EQ(47.23.175.50)||CONNECTION.SRCIP.EQ(107.77.226.157)||CONNECTION.SRCIP.EQ(107.77.223.77)
+
+
+start nstrace -filter "CONNECTION.DSTIP.EQ(10.30.44.20)" -size 0 -link ENABLE -time 3600
+
+start nstrace -filter "CONNECTION.SRCIP.EQ(172.23.8.144)" -size 0 -link ENABLE -time 3600 -mode SSLPLAIN
+
+
+start nstrace -filter "vsvrname == webmail.aqr.com_csw_443_grn" -size 0 -link ENABLE -time 3600
+
+start nstrace -filter "vsvrname == easmailprod-relay.aqr.com_vip_trm" -size 0 -link ENABLE -time 3600
+
+
+
+
+
+start nstrace -filter "vsvrname == aqrweb.aqrcapital.com_csw_trm" -size 0 -link ENABLE -time 3600
+
+start nstrace -filter "CONNECTION.DSTIP.EQ(10.30.184.20)&&CONNECTION.DSTPORT.EQ(3011)" -size 0 -link ENABLE -time 3600
+
+
+
+*** Live Tracing ***
+
+nstcpdump.sh -X dst host 192.168.241.24 and port 443
+nstcpdump.sh -X host 172.24.1.118 and port 443
+
+
+nstcpdump.sh -A host 192.168.241.24 and port 443
+
+
+nstcpdump.sh src host 172.23.0.8
+start nstrace -filter "CONNECTION.DSTIP.EQ(10.30.44.20)&&CONNECTION.DSTPORT.EQ(3011)" -size 0 -link ENABLE -time 3600
+
+
+start nstrace -filter "vsvrname == easmailprod-relay.aqr.com_vip_trm" -size 0 -link ENABLE -time 3600
+
+start nstrace -filter "vsvrname == exch2016_cs_trm" -size 0 -link ENABLE -time 3600 -mode SSLPLAIN
+
+9lOjyLWt!3R%
