@@ -118,11 +118,11 @@ ForEach ($dc in $dclist) {
 #                catch {
 #                  "$(Get-TimeStamp) FAILED: Remove Monitor Binding "  + $gslbsvcname + " " + $_.Exception.Message | Out-File -filepath $logfile -Append -Encoding ascii
 #                }#CATCH Invoke Nitro Delete
-#
-#
-#        }#ForEach GSLBDC
-#    }#ForEach VIP
 #>
+
+        }#ForEach GSLBDC
+    }#ForEach VIP
+
 #Remove DomainName Binding
     "$(Get-TimeStamp) CONNECT: " + $OLDNsip | Out-File -filepath $logfile -Append -Encoding ascii
     Connect-NetScaler -Hostname $OLDNsip -Credential $Credential
@@ -140,11 +140,11 @@ ForEach ($dc in $dclist) {
 
 
             $gslbdomtype = "gslbvserver_domain_binding/" + $gslbvipname + "?args=" + $gslbdomname
-<#            $gslbvippayld = @{ }
+            $gslbvippayld = @{ }
             $gslbvippayld = @{
                              name = $gslbvipname
                              }#gslbvippayld
-#>
+
            "$(Get-TimeStamp) Remove DomainName Binding " + $gslbvipname + " " + $gslbdomname | Out-File -filepath $logfile -Append -Encoding ascii
 
                 try {
@@ -167,14 +167,14 @@ ForEach ($save in $savedc) {
         $SAVENsip = $null
         $SAVENsip = 'n' + $save + '0' + $envinit + 'nsinty01.aqrcapital.com'
 
-        "$(Get-TimeStamp) Save Config " + $SAVENsip | Out-File -filepath $outputfile -Append -Encoding ascii
+        "$(Get-TimeStamp) Save Config " + $SAVENsip | Out-File -filepath $logfile -Append -Encoding ascii
         try {
             Connect-NetScaler -Hostname $SAVENsip -Credential $Credential -HTTPS
             Save-NSConfig
             Disconnect-NetScaler
         } #Try SaveConfig
         catch {
-              "$(Get-TimeStamp) FAILED Save Config  " + $SAVENsip + " " + $_.Exception.Message | Out-File -filepath $outputfile -Append -Encoding ascii
+              "$(Get-TimeStamp) FAILED Save Config  " + $SAVENsip + " " + $_.Exception.Message | Out-File -filepath $logfile -Append -Encoding ascii
         } #Catch SaveConfig
 }#ForEach SaveDC
 
