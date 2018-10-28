@@ -52,9 +52,9 @@ ForEach ($dc in $dclist) {
     $dcinit = ($dc.Substring(0,1))
 
     $NEWNsip = $null
-    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.aqrcapital.com'
+    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.foo.bar'
     $OLDNsip = $null
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foo.bar'
 
     "$(Get-TimeStamp) CONNECT: " + $NEWNsip | Out-File -filepath $logfile -Append -Encoding ascii
     Connect-NetScaler -Hostname $NewNsip -Credential $Credential -HTTPS
@@ -134,9 +134,9 @@ ForEach ($dc in $dclist) {
 
             $pos = $null
             $left = $null
-            $pos = $vip.name.indexof(".aqrcap")
+            $pos = $vip.name.indexof(".foocap")
             $left = $vip.name.substring(0, $pos)
-            $gslbdomname = $left + ".int.aqrcapital.com"
+            $gslbdomname = $left + ".int.foo.bar"
 
 
             $gslbdomtype = "gslbvserver_domain_binding/" + $gslbvipname + "?args=" + $gslbdomname
@@ -165,7 +165,7 @@ $savedc = @("t","g")
 
 ForEach ($save in $savedc) {
         $SAVENsip = $null
-        $SAVENsip = 'n' + $save + '0' + $envinit + 'nsinty01.aqrcapital.com'
+        $SAVENsip = 'n' + $save + '0' + $envinit + 'nsinty01.foo.bar'
 
         "$(Get-TimeStamp) Save Config " + $SAVENsip | Out-File -filepath $logfile -Append -Encoding ascii
         try {

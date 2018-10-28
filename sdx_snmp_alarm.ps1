@@ -3,7 +3,7 @@ $AllProtocols = [System.Net.SecurityProtocolType]'Tls12'
 [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
 
 $credential = Get-Credential
-$snmpalrms = Get-Content "\\aqrcapital.com\users\ravidn\Documents\GitHub\natescripts\sdx_snmp_names.txt"
+$snmpalrms = Get-Content "\\foo.bar\users\ravidn\Documents\GitHub\natescripts\sdx_snmp_names.txt"
 
 
 function sdxsnmp {
@@ -31,7 +31,7 @@ function sdxsnmp {
 }#function sdxsnmp
 
 
-$nmasdevices = Invoke-RestMethod -uri "https://nt0pctxmas01.aqrcapital.com/nitro/v2/config/managed_device" -Credential $credential | select managed_device -ExpandProperty managed_device | select type, ip_address | Where-Object {($_.type -eq "nssdx")}
+$nmasdevices = Invoke-RestMethod -uri "https://nt0pctxmas01.foo.bar/nitro/v2/config/managed_device" -Credential $credential | select managed_device -ExpandProperty managed_device | select type, ip_address | Where-Object {($_.type -eq "nssdx")}
 
 
 ForEach ($nsip in $nmasdevices) {

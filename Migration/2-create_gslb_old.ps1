@@ -56,9 +56,9 @@ ForEach ($dc in $dclistold) {
         $OLDNsip = $null
         $dcinit = $null
         $dcinit = ($dc.Substring(0,1))
-        $OLDNsip = 'n' + $dcinit + '0pnsint.aqrcapital.com'
+        $OLDNsip = 'n' + $dcinit + '0pnsint.foo.bar'
         $NEWNsip = $null
-        $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty.aqrcapital.com'
+        $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty.foo.bar'
 
         ForEach ($fqdn in $envlist) {
                 $oldgslbvsrv = $null
@@ -66,7 +66,7 @@ ForEach ($dc in $dclistold) {
                 $oldgslbvsvcbnd = $null
                 $oldgslbvsvcbnd2 = $null
                 $gslbdomname = $null
-                $gslbdomname = $fqdn.name -replace ".aqrcapital.com", ".int.aqrcapital.com"
+                $gslbdomname = $fqdn.name -replace ".foo.bar", ".int.foo.bar"
 
 #Connect to Old NS
                 Connect-NetScaler -Hostname $OLDNsip -Credential $Credential
@@ -424,7 +424,7 @@ $savedc = @("t","g")
 
 ForEach ($save in $savedc) {
         $SAVENsip = $null
-        $SAVENsip = 'n' + $save + '0' + $envinit + 'nsinty01.aqrcapital.com'
+        $SAVENsip = 'n' + $save + '0' + $envinit + 'nsinty01.foo.bar'
 
         "$(Get-TimeStamp) Save Config " + $SAVENsip | Out-File -filepath $outputfile -Append -Encoding ascii
         try {

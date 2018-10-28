@@ -46,7 +46,7 @@ function scansnmp {
 
 $credential = Get-Credential
 
-$nmasdevices = Invoke-RestMethod -uri "https://nt0pctxmas01.aqrcapital.com/nitro/v2/config/managed_device" -Credential $credential | select managed_device -ExpandProperty managed_device | select type, ip_address, instance_state, ha_master_state | Where-Object {($_.type -eq "nsvpx") -and ($_.instance_state -eq "Up") -and ($_.ha_master_state -eq "Primary")}
+$nmasdevices = Invoke-RestMethod -uri "https://nt0pctxmas01.foo.bar/nitro/v2/config/managed_device" -Credential $credential | select managed_device -ExpandProperty managed_device | select type, ip_address, instance_state, ha_master_state | Where-Object {($_.type -eq "nsvpx") -and ($_.instance_state -eq "Up") -and ($_.ha_master_state -eq "Primary")}
 
 $nate = @()
 

@@ -27,7 +27,7 @@ $unqservers = New-Object System.Collections.ArrayList
 
 $env = Read-Host -Prompt "Environment?"
 $envinit = ($env.Substring(0,1))
-$envcompare = '*.' + $env + '.int.aqr*'
+$envcompare = '*.' + $env + '.int.foo*'
 $credential = Get-Credential
 
 $outputfile = $null
@@ -43,7 +43,7 @@ ForEach ($dc in $dclist) {
     $dcinit = ($dc.Substring(0,1))
 
     $OLDNsip = $null
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foo.bar'
 
     "$(Get-TimeStamp) CONNECT to " + $OLDNsip | Out-File -filepath $logfile -Append -Encoding ascii
 

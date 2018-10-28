@@ -1,7 +1,7 @@
 
 
-add dns nsRec int.aqrcapital.com ng0pnsint.aqrcapital.com -TTL 60
-add dns nsRec int.aqrcapital.com nt0pnsint.aqrcapital.com -TTL 60
+add dns nsRec int.foo.bar ng0pnsint.foo.bar -TTL 60
+add dns nsRec int.foo.bar nt0pnsint.foo.bar -TTL 60
 
-add dns mxRec int.aqrcapital.com -mx outboundmail.int.aqrcapital.com -pref 1
+add dns mxRec int.foo.bar -mx outboundmail.int.foo.bar -pref 1
 

@@ -70,8 +70,8 @@ ForEach ($fqdn in $envlist) {
     $vipextension = $null
 
     $dcinit = ($dc.Substring(0,1))
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
-    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foo.bar'
+    $NEWNsip = 'n' + $dcinit + '0' + $envinit + 'nsinty01.foo.bar'
 
     IF ($dc -eq "trm") {
         $newipaddr = $trmpref + $fqdn.trmip
@@ -268,7 +268,7 @@ $savedc = @("t","g")
 
 ForEach ($save in $savedc) {
         $SAVENsip = $null
-        $SAVENsip = 'n' + $save + '0' + $envinit + 'nsinty01.aqrcapital.com'
+        $SAVENsip = 'n' + $save + '0' + $envinit + 'nsinty01.foo.bar'
 
         "$(Get-TimeStamp) Save Config " + $SAVENsip | Out-File -filepath $outputfile -Append -Encoding ascii
         try {

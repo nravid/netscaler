@@ -8,15 +8,15 @@ start nstrace -filter "CONNECTION.DSTIP.EQ(10.30.44.20)" -size 0 -link ENABLE -t
 start nstrace -filter "CONNECTION.SRCIP.EQ(172.23.8.144)" -size 0 -link ENABLE -time 3600 -mode SSLPLAIN
 
 
-start nstrace -filter "vsvrname == webmail.aqr.com_csw_443_grn" -size 0 -link ENABLE -time 3600
+start nstrace -filter "vsvrname == webmail.foo.bar_csw_443_grn" -size 0 -link ENABLE -time 3600
 
-start nstrace -filter "vsvrname == easmailprod-relay.aqr.com_vip_trm" -size 0 -link ENABLE -time 3600
-
-
+start nstrace -filter "vsvrname == easmailprod-relay.foo.bar_vip_trm" -size 0 -link ENABLE -time 3600
 
 
 
-start nstrace -filter "vsvrname == aqrweb.aqrcapital.com_csw_trm" -size 0 -link ENABLE -time 3600
+
+
+start nstrace -filter "vsvrname == fooweb.foo.bar_csw_trm" -size 0 -link ENABLE -time 3600
 
 start nstrace -filter "CONNECTION.DSTIP.EQ(10.30.184.20)&&CONNECTION.DSTPORT.EQ(3011)" -size 0 -link ENABLE -time 3600
 
@@ -35,7 +35,7 @@ nstcpdump.sh src host 172.23.0.8
 start nstrace -filter "CONNECTION.DSTIP.EQ(10.30.44.20)&&CONNECTION.DSTPORT.EQ(3011)" -size 0 -link ENABLE -time 3600
 
 
-start nstrace -filter "vsvrname == easmailprod-relay.aqr.com_vip_trm" -size 0 -link ENABLE -time 3600
+start nstrace -filter "vsvrname == easmailprod-relay.foo.bar_vip_trm" -size 0 -link ENABLE -time 3600
 
 start nstrace -filter "vsvrname == exch2016_cs_trm" -size 0 -link ENABLE -time 3600 -mode SSLPLAIN
 

@@ -28,8 +28,8 @@ $hostname = Read-Host -Prompt "Host Name?"
 $sitename = Read-Host -Prompt "Site (ash, grn, trm)?"
 $DMZ = ((Read-Host -Prompt "DMZ (Y/N)?") -eq "y")
 $sitename = $sitename.ToLower()
-$ldappass = ((Invoke-RestMethod -Uri https://pim.aqrcapital.com/SecretServer/winauthwebservices/api/v1/secrets/1349 -Method Get -UseDefaultCredentials -ContentType "application/json").items | Where-Object {$_.fieldName -eq "Password"}).itemValue
-$weblogpass = ((Invoke-RestMethod -Uri https://pim.aqrcapital.com/SecretServer/winauthwebservices/api/v1/secrets/5152 -Method Get -UseDefaultCredentials -ContentType "application/json").items | Where-Object {$_.fieldName -eq "Password"}).itemValue
+$ldappass = ((Invoke-RestMethod -Uri https://pim.foo.bar/SecretServer/winauthwebservices/api/v1/secrets/1349 -Method Get -UseDefaultCredentials -ContentType "application/json").items | Where-Object {$_.fieldName -eq "Password"}).itemValue
+$weblogpass = ((Invoke-RestMethod -Uri https://pim.foo.bar/SecretServer/winauthwebservices/api/v1/secrets/5152 -Method Get -UseDefaultCredentials -ContentType "application/json").items | Where-Object {$_.fieldName -eq "Password"}).itemValue
 $credential = Get-Credential
 
 $subnet = $null
@@ -304,7 +304,7 @@ ForEach ($snmpc in $snmpcomms){
 
 #SNMP Managers
 "$(Get-TimeStamp) ADD SNMP Managers" | Out-File -filepath $logfile -Append -Encoding ascii
-$snmpmgrs = @("st0pzenrn01.aqrcapital.com", "st0pzenrn02.aqrcapital.com", "st0pzenrn03.aqrcapital.com", "st0pzenrn04.aqrcapital.com")
+$snmpmgrs = @("st0pzenrn01.foo.bar", "st0pzenrn02.foo.bar", "st0pzenrn03.foo.bar", "st0pzenrn04.foo.bar")
 
 ForEach ($snmpm in $snmpmgrs){
     "$(Get-TimeStamp) Add SNMP Manager " + $snmpm | Out-File -filepath $logfile -Append -Encoding ascii
@@ -622,11 +622,11 @@ CATCH {
 "$(Get-TimeStamp) ADD LDAP Authentication Action" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapactpayld = @{ }
 $ldapactpayld = @{
-                name = "ldap.aqrcapital.com_authact"
+                name = "ldap.foo.bar_authact"
                 serverip = "10.31.44.104"
                 serverport = "636"
                 ldapbase = "dc=AQRCAPITAL,dc=com"
-                ldapbinddn = "ns_ldap@aqrcapital.com"
+                ldapbinddn = "ns_ldap@foo.bar"
                 ldapbinddnpassword = $ldappass
                 ldaploginname = "sAMAccountName"
                 groupattrname = "memberOf"
@@ -645,9 +645,9 @@ CATCH {
 "$(Get-TimeStamp) ADD LDAP Authentication Policy" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldappolpayld = @{ }
 $ldappolpayld = @{
-                name = "ldap.aqrcapital.com_authpol"
+                name = "ldap.foo.bar_authpol"
                 rule = "ns_true"
-                reqaction = "ldap.aqrcapital.com_authact"
+                reqaction = "ldap.foo.bar_authact"
                 }#ldappolpayld
 TRY {
     Invoke-Nitro -Method POST -Type authenticationldappolicy -Payload $ldappolpayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
@@ -660,11 +660,11 @@ CATCH {
 "$(Get-TimeStamp) ADD LDAP Authentication Administration Action" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapadapayld = @{ }
 $ldapadapayld = @{
-                name = "ldap.aqrcapital.com_admin_authact"
+                name = "ldap.foo.bar_admin_authact"
                 serverip = "10.31.44.104"
                 serverport = "636"
                 ldapbase = "dc=AQRCAPITAL,dc=com"
-                ldapbinddn = "ns_ldap@aqrcapital.com"
+                ldapbinddn = "ns_ldap@foo.bar"
                 ldapbinddnpassword = $ldappass
                 ldaploginname = "sAMAccountName"
                 groupattrname = "memberOf"
@@ -675,11 +675,11 @@ $ldapadapayld = @{
                 }#ldapadapayld
 if($DMZ){
 $ldapadapayld = @{
-                name = "ldap.aqrcapital.com_admin_authact"
+                name = "ldap.foo.bar_admin_authact"
                 serverip = "10.31.44.104"
                 serverport = "636"
                 ldapbase = "dc=AQRCAPITAL,dc=com"
-                ldapbinddn = "ns_ldap@aqrcapital.com"
+                ldapbinddn = "ns_ldap@foo.bar"
                 ldapbinddnpassword = $ldappass
                 ldaploginname = "sAMAccountName"
                 groupattrname = "memberOf"
@@ -701,9 +701,9 @@ CATCH {
 "$(Get-TimeStamp) ADD LDAP Authentication Administration Policy" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapadppayld = @{ }
 $ldapadppayld = @{
-                name = "ldap.aqrcapital.com_admin_authpol"
+                name = "ldap.foo.bar_admin_authpol"
                 rule = "ns_true"
-                reqaction = "ldap.aqrcapital.com_admin_authact"
+                reqaction = "ldap.foo.bar_admin_authact"
                 }#ldapadppayld
 TRY {
     Invoke-Nitro -Method POST -Type authenticationldappolicy -Payload $ldapadppayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE
@@ -716,7 +716,7 @@ CATCH {
 "$(Get-TimeStamp) BIND LDAP Authentication Administration Policy" | Out-File -filepath $logfile -Append -Encoding ascii
 $ldapbndpayld = @{ }
 $ldapbndpayld = @{
-                policyname = "ldap.aqrcapital.com_admin_authpol"
+                policyname = "ldap.foo.bar_admin_authpol"
                 priority = "100"
                 }#ldapbndpayld
 TRY {
@@ -875,7 +875,7 @@ CATCH {
 }#CATCH WinSCP Session Open
 
 TRY {
-    Send-WinSCPItem -Path "\\aqrcapital.com\shares\FS001\Citrix\Citrix\SSL\AQRCapital_Wildcard\*" -Destination "/flash/nsconfig/ssl/*" -WinSCPSession $winscpsession
+    Send-WinSCPItem -Path "\\foo.bar\shares\FS001\Citrix\Citrix\SSL\AQRCapital_Wildcard\*" -Destination "/flash/nsconfig/ssl/*" -WinSCPSession $winscpsession
 }#TRY WinSCP Copy
 CATCH {
       "$(Get-TimeStamp) FAILED Copy Wildcard Certificates Session Copy " + $_.Exception.Message | Out-File -filepath $logfile -Append -Encoding ascii
@@ -886,9 +886,9 @@ CATCH {
 "$(Get-TimeStamp) Create SSL Cert Wildcard" | Out-File -filepath $logfile -Append -Encoding ascii
 $newsslwildpayld = @{ }
 $newsslwildpayld = @{
-                    certkey = "wildcard.aqrcapital.com_exp2018"
-                    cert = "wildcard.aqrcapital.com.cer"
-                    key = "wildcard.aqrcapital.com.key"
+                    certkey = "wildcard.foo.bar_exp2018"
+                    cert = "wildcard.foo.bar.cer"
+                    key = "wildcard.foo.bar.key"
                     expirymonitor = "ENABLED"
                     notificationperiod = "90"
                     }#newsslwildpayld
@@ -903,8 +903,8 @@ CATCH {
 "$(Get-TimeStamp) Create SSL Cert Intermediate" | Out-File -filepath $logfile -Append -Encoding ascii
 $newsslintrpayld = @{ }
 $newsslintrpayld = @{
-                    certkey = "aqrcapital.com_issuing"
-                    cert = "subca.aqrcapital.com.cer"
+                    certkey = "foo.bar_issuing"
+                    cert = "subca.foo.bar.cer"
                     expirymonitor = "ENABLED"
                     notificationperiod = "90"
                     }#newsslintrpayld
@@ -919,8 +919,8 @@ CATCH {
 "$(Get-TimeStamp) Create SSL Cert Root" | Out-File -filepath $logfile -Append -Encoding ascii
 $newsslrootpayld = @{ }
 $newsslrootpayld = @{
-                    certkey = "aqrcapital.com_root"
-                    cert = "root.aqrcapital.com.cer"
+                    certkey = "foo.bar_root"
+                    cert = "root.foo.bar.cer"
                     expirymonitor = "ENABLED"
                     notificationperiod = "90"
                     }#newsslrootpayld
@@ -934,8 +934,8 @@ CATCH {
 "$(Get-TimeStamp) Link Wildcard to Intermediate" | Out-File -filepath $logfile -Append -Encoding ascii
 $wildintrpayld = @{ }
 $wildintrpayld = @{
-                    certkey = "wildcard.aqrcapital.com_exp2018"
-                    linkcertkeyname = "aqrcapital.com_issuing"
+                    certkey = "wildcard.foo.bar_exp2018"
+                    linkcertkeyname = "foo.bar_issuing"
                     }#wildintrpayld
 TRY {
     Invoke-Nitro -Method POST -Type sslcertkey -Payload $wildintrpayld -Action LINK -OnErrorAction CONTINUE -Confirm -Force
@@ -947,8 +947,8 @@ CATCH {
 "$(Get-TimeStamp) Link Intermediate to Root" | Out-File -filepath $logfile -Append -Encoding ascii
 $intrrootpayld = @{ }
 $intrrootpayld = @{
-                    certkey = "aqrcapital.com_issuing"
-                    linkcertkeyname = "aqrcapital.com_root"
+                    certkey = "foo.bar_issuing"
+                    linkcertkeyname = "foo.bar_root"
                     }#intrrootpayld
 TRY {
     Invoke-Nitro -Method POST -Type sslcertkey -Payload $intrrootpayld -Action LINK -OnErrorAction CONTINUE -Confirm -Force
@@ -979,7 +979,7 @@ ForEach ($intsvc in $svclist) {
         $intsvcsslpayld = @{ }
         $intsvcsslpayld = @{
                            servicename = $intsvc
-                           certkeyname = "wildcard.aqrcapital.com_exp2018"
+                           certkeyname = "wildcard.foo.bar_exp2018"
                            }#intsvcsslpayld
         TRY {
             Invoke-Nitro -Method PUT -Type sslservice_sslcertkey_binding -Payload $intsvcsslpayld -Confirm -Force -ErrorAction Continue -OnErrorAction CONTINUE

@@ -11,7 +11,7 @@ ForEach ($dc in $dclist) {
     $dcinit = ($dc.Substring(0,1))
 
     $OLDNsip = $null
-    $OLDNsip = 'n' + $dcinit + '0pnsint01.aqrcapital.com'
+    $OLDNsip = 'n' + $dcinit + '0pnsint01.foo.bar'
 
     Connect-NetScaler -Hostname $OLDNsip -Credential $Credential
 

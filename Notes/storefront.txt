@@ -7,7 +7,7 @@ bind serviceGroup grn_715_storefront_vip -monitorName grn_sf_mon
 
 add lb vserver storefront_715_vip_grn SSL 10.30.58.83 443 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180
 bind lb vserver storefront_715_vip_grn grn_715_storefront_vip
-bind ssl vserver storefront_715_vip_grn -certkeyName wildcard.aqrcapital.com_exp2018
+bind ssl vserver storefront_715_vip_grn -certkeyName wildcard.foo.bar_exp2018
 
 
 
@@ -20,7 +20,7 @@ bind serviceGroup trm_715_storefront_vip -monitorName trm_sf_mon
 
 add lb vserver storefront_715_vip_trm SSL 10.31.58.83 443 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180
 bind lb vserver storefront_715_vip_trm trm_715_storefront_vip
-bind ssl vserver storefront_715_vip_trm -certkeyName wildcard.aqrcapital.com_exp2018
+bind ssl vserver storefront_715_vip_trm -certkeyName wildcard.foo.bar_exp2018
 
 unbind serviceGroup trm_715_storefront_vip -monitorName trm_sf_mon
 rm lb monitor trm_sf_mon STOREFRONT

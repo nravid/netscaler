@@ -3,7 +3,7 @@ add vlan 245
 add vlan 241
 
 ENT_Netscaler_Admins
-&(|(memberof=CN=ENT_Netscaler_Admins,OU=Security,OU=AQR Groups,OU=AQR Users,DC=aqrcapital,DC=com)(memberof=CN=ENT_Netscaler_DMZ_Admins,OU=Security,OU=AQR Groups,OU=AQR Users,DC=aqrcapital,DC=com)(memberof=CN=ENT_Netscaler_RO,OU=Security,OU=AQR Groups,OU=AQR Users,DC=aqrcapital,DC=com))
+&(|(memberof=CN=ENT_Netscaler_Admins,OU=Security,OU=foo Groups,OU=foo Users,DC=foocapital,DC=com)(memberof=CN=ENT_Netscaler_DMZ_Admins,OU=Security,OU=foo Groups,OU=foo Users,DC=foocapital,DC=com)(memberof=CN=ENT_Netscaler_RO,OU=Security,OU=foo Groups,OU=foo Users,DC=foocapital,DC=com))
 
 On Primary:
 set HA node -haStatus STAYPRIMARY -haSync ENABLED -haProp ENABLED -helloInterval 200 -deadInterval 3 -failSafe OFF -maxFlips 0 -maxFlipTime 0
