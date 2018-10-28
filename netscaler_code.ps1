@@ -1,49 +1,92 @@
-﻿----
+﻿
+$vpxlist = ("10.30.44.21",
+            "10.30.44.22",
+            "10.30.172.21",
+            "10.30.176.21",
+            "10.30.180.21",
+            "10.31.44.21",
+            "10.31.44.22",
+            "10.31.48.21",
+            "10.31.48.22",
+            "10.31.160.21",
+            "10.31.160.22",
+            "10.31.164.21",
+            "10.31.164.22",
+            "10.64.56.21",
+            "10.64.56.22"
+            )
+
+----
+
+
 
 $AllProtocols = [System.Net.SecurityProtocolType]'Tls12'
 [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
 
-*** LAB VPX
+*** ASH INT
 
-$Nsip = '192.168.137.20'
+$Nsip = 'va0pnsinty02.aqrcapital.com'
 $Credential = Get-Credential
-Connect-NetScaler -Hostname $Nsip -Credential $Credential
+Connect-NetScaler -Hostname $Nsip -Credential $Credential -Https
+
+*** GRN STG
+
+$Nsip = 'ng0snsinty01.aqrcapital.com'
+$Credential = Get-Credential
+Connect-NetScaler -Hostname $Nsip -Credential $Credential -Https
+
+*** TRM EXT
+
+$Nsip = 'nt0pnsext01.aqrcapital.com'
+$Credential = Get-Credential
+Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
+
+*** GRN EXT
+
+$Nsip = 'ng0pnsext01.aqrcapital.com'
+$Credential = Get-Credential
+Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
+
 
 
 *** TRM INT
 
-$Nsip = 'nt0pnsint01.foobar.com'
+$Nsip = 'nt0pnsint01.aqrcapital.com'
 $Credential = Get-Credential
-Connect-NetScaler -Hostname $Nsip -Credential $Credential
+$trmsess = Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 
 *** GRN INT
-$Nsip = 'ng0pnsint01.foobar.com'
+$Nsip = 'ng0pnsint01.aqrcapital.com'
 $SecurePassword = ConvertTo-SecureString 'HH!qDpk)8S4L' -AsPlainText -Force
 $Credential = New-Object System.Management.Automation.PSCredential ("nsroot", $SecurePassword)
 Connect-NetScaler -Hostname $Nsip -Credential $Credential
 
 
-*** TRM QA INT
-$Nsip = 'nt0qnsinty01.foobar.com'
+*** TRM PRD INT
+$Nsip = 'nt0pnsinty01.aqrcapital.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
 *** GRN DEV INT
-$Nsip = 'ng0dnsinty01.foobar.com'
+$Nsip = 'ng0dnsinty01.aqrcapital.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
 *** GRN STG INT
-$Nsip = 'ng0snsinty01.foobar.com'
+$Nsip = 'ng0snsinty01.aqrcapital.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
 *** GRN QA INT
-$Nsip = 'ng0qnsinty01.foobar.com'
+$Nsip = 'ng0qnsinty01.aqrcapital.com'
 $Credential = Get-Credential
 Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 
+*** TRM DMZ3 EXT
+$Nsip = 'nt0pnsexty02.aqrcapital.com'
+$Credential = Get-Credential
+Connect-NetScaler -Hostname $Nsip -Credential $Credential -HTTPS
 ----
 $SecurePassword = ConvertTo-SecureString "yaABAW0&DJzX" -AsPlainText -Force
 $Credential = New-Object System.Management.Automation.PSCredential ("nsroot", $SecurePassword)
@@ -73,11 +116,11 @@ $nate = Get-NSLBServiceGroup | Where-Object {$_.servicegroupname -like '*.dev*'}
 $nate.servicegroupname | Get-NSLBServiceGroupMonitorBinding | Select-Object -Unique monitor_name
 
 
-$RestURI = "http://"+$Nsip+"/nitro/v1/config/gslbvserver/remoteprintipgs.foobar.com_gslb_vip_trm?attrs=name,servicetype"
+$RestURI = "http://"+$Nsip+"/nitro/v1/config/gslbvserver/remoteprintipgs.aqrcapital.com_gslb_vip_trm?attrs=name,servicetype"
 Invoke-RestMethod -Uri $RestURI -Credential $credential
  
 
-$nateget = Invoke-Nitro -Method GET -Type gslbvserver -Resource remoteprintipgs.foobar.com_gslb_vip_trm | Select-Object gslbvserver
+$nateget = Invoke-Nitro -Method GET -Type gslbvserver -Resource remoteprintipgs.aqrcapital.com_gslb_vip_trm | Select-Object gslbvserver
 $nateget.gslbvserver
 
 
@@ -102,11 +145,37 @@ foreach( $ip in $ipaddresses) {
 Write-Host "Pinging Completed."
 
 
-Invoke-Nitro -Method GET -Type appfwlearningdata -Arguments profilename:sso.abc.com_waf_prf,starturl
+Invoke-Nitro -Method GET -Type appfwlearningdata -Arguments profilename:sso.aqr.com_waf_prf,securitycheck:starturl
+
 
 Get-NSIPResource | Select-Object -Unique ipaddress | Export-Csv -NoTypeInformation H:\NS-Migration\TRM-IPADDR.csv
 
 
 
-Get-IBResourceRecord -Credential $Credential -GridServer ibxgridmaster.foobar.com -SearchText itseclog.foobar.com -Type CName
+Get-IBResourceRecord -Credential $Credential -GridServer ibxgridmaster.aqrcapital.com -SearchText itseclog.aqrcapital.com -Type CName
+
+$BigTRMsession = Connect-NetScaler -Credential $credential -Hostname "nt0pnsint.aqrcapital.com" -Https -PassThru
+$BigGRNsession = Connect-NetScaler -Credential $credential -Hostname "ng0pnsint.aqrcapital.com" -Https -PassThru
+
+$nate = $null
+$nateout = $null
+$netscalers=@("nt0pnsint.aqrcapital.com","ng0pnsint.aqrcapital.com")
+foreach ($ns in $netscalers) {
+        Connect-NetScaler -Credential $credential -Hostname $ns -PassThru
+        $nate=Invoke-Nitro -Method GET -Stat -Type lbvserver
+        $nateout+=$nate.lbvserver | ? {$_.state -eq "UP" -and $_.tothits -ne "0"} | select name,tothits
+        Disconnect-NetScaler
+}
+
+
+$nate = $null
+$nateout = $null
+$netscalers=@("nt0pnsint.aqrcapital.com","ng0pnsint.aqrcapital.com")
+foreach ($ns in $netscalers) {
+        Connect-NetScaler -Credential $credential -Hostname $ns -PassThru
+        $nate=Invoke-Nitro -Method GET -Stat -Type lbvserver
+        $nateout+=$nate.lbvserver | ? {$_.name -match "aqrweb"} | select name,tothits
+        Disconnect-NetScaler
+}
+
 
