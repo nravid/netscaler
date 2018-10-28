@@ -1,0 +1,238 @@
+NOTE: HTTP Front-End, HTTP Back-End, No Redirection
+
+
+ops-wires.
+
+INC0391108
+
+15121
+
+vt0dweb21
+vt0qweb21
+vg0sweb21,vt0sweb21
+sg0pweb16,st0pweb16,sg0pweb17,st0pweb17
+
+DEV
+TRM: .49.37
+GRN: .185.37
+
+QA
+TRM: .161.80
+GRN: .177.80
+
+STG
+TRM: .165.100
+GRN: .181.100
+
+PRD
+TRM: .45.61
+GRN: .45.61
+
+
+~~~~~~~~~~~~~~~~~~~~ TRM:
+
+add server ops-wires.dev.aqrcapital.com_gslb_svr_trm 10.31.49.37
+add server ops-wires.dev.aqrcapital.com_gslb_svr_grn 10.30.185.37
+
+add serviceGroup ops-wires.dev.aqrcapital.com_svg_15121_trm HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.dev.aqrcapital.com_svg_15121_trm vt0dweb21 15121
+bind serviceGroup ops-wires.dev.aqrcapital.com_svg_15121_trm -monitorName http-ecv
+
+add lb vserver ops-wires.dev.aqrcapital.com_vip_80_trm HTTP 10.31.49.37 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.dev.aqrcapital.com_vip_80_trm ops-wires.dev.aqrcapital.com_svg_15121_trm
+
+add gslb service ops-wires.dev.aqrcapital.com_gslb_svc_grn ops-wires.dev.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.dev.aqrcapital.com_gslb_svc_trm ops-wires.dev.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_trm HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.dev.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.dev.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_trm -domainName ops-wires.dev.int.aqrcapital.com -TTL 5
+
+
+---
+
+
+add server ops-wires.qa1.aqrcapital.com_gslb_svr_trm 10.31.161.80
+add server ops-wires.qa1.aqrcapital.com_gslb_svr_grn 10.30.177.80
+
+add serviceGroup ops-wires.qa1.aqrcapital.com_svg_15121_trm HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.qa1.aqrcapital.com_svg_15121_trm vt0qweb21 15121
+bind serviceGroup ops-wires.qa1.aqrcapital.com_svg_15121_trm -monitorName http-ecv
+
+add lb vserver ops-wires.qa1.aqrcapital.com_vip_80_trm HTTP 10.31.161.80 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.qa1.aqrcapital.com_vip_80_trm ops-wires.qa1.aqrcapital.com_svg_15121_trm
+
+add gslb service ops-wires.qa1.aqrcapital.com_gslb_svc_grn ops-wires.qa1.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.qa1.aqrcapital.com_gslb_svc_trm ops-wires.qa1.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_trm HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.qa1.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.qa1.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_trm -domainName ops-wires.qa1.int.aqrcapital.com -TTL 5
+
+
+---
+
+
+add server ops-wires.stg.aqrcapital.com_gslb_svr_trm 10.31.165.100
+add server ops-wires.stg.aqrcapital.com_gslb_svr_grn 10.30.181.100
+
+add serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_trm HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_trm vg0sweb21 15121
+bind serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_trm vt0sweb21 15121
+bind serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_trm -monitorName http-ecv
+
+add lb vserver ops-wires.stg.aqrcapital.com_vip_80_trm HTTP 10.31.165.100 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.stg.aqrcapital.com_vip_80_trm ops-wires.stg.aqrcapital.com_svg_15121_trm
+
+add gslb service ops-wires.stg.aqrcapital.com_gslb_svc_grn ops-wires.stg.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.stg.aqrcapital.com_gslb_svc_trm ops-wires.stg.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_trm HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.stg.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.stg.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_trm -domainName ops-wires.stg.int.aqrcapital.com -TTL 5
+
+
+---
+
+
+add server ops-wires.prd.aqrcapital.com_gslb_svr_trm 10.31.45.61
+add server ops-wires.prd.aqrcapital.com_gslb_svr_grn 10.30.45.61
+
+add serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_trm HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_trm sg0pweb16 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_trm st0pweb16 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_trm sg0pweb17 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_trm st0pweb17 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_trm -monitorName http-ecv
+
+add lb vserver ops-wires.prd.aqrcapital.com_vip_80_trm HTTP 10.31.45.61 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.prd.aqrcapital.com_vip_80_trm ops-wires.prd.aqrcapital.com_svg_15121_trm
+
+add gslb service ops-wires.prd.aqrcapital.com_gslb_svc_grn ops-wires.prd.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.prd.aqrcapital.com_gslb_svc_trm ops-wires.prd.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_trm HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.prd.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_trm -serviceName ops-wires.prd.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_trm -domainName ops-wires.prd.int.aqrcapital.com -TTL 5
+
+
+~~~~~~~~~~~~~~~~~~~~ GRN:
+
+add server ops-wires.dev.aqrcapital.com_gslb_svr_trm 10.31.49.37
+add server ops-wires.dev.aqrcapital.com_gslb_svr_grn 10.30.185.37
+
+add serviceGroup ops-wires.dev.aqrcapital.com_svg_15121_grn HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.dev.aqrcapital.com_svg_15121_grn vt0dweb21 15121
+bind serviceGroup ops-wires.dev.aqrcapital.com_svg_15121_grn -monitorName http-ecv
+
+add lb vserver ops-wires.dev.aqrcapital.com_vip_80_grn HTTP 10.30.185.37 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.dev.aqrcapital.com_vip_80_grn ops-wires.dev.aqrcapital.com_svg_15121_grn
+
+add gslb service ops-wires.dev.aqrcapital.com_gslb_svc_grn ops-wires.dev.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.dev.aqrcapital.com_gslb_svc_trm ops-wires.dev.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_grn HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.dev.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.dev.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.dev.aqrcapital.com_gslb_vip_grn -domainName ops-wires.dev.int.aqrcapital.com -TTL 5
+
+
+---
+
+
+add server ops-wires.qa1.aqrcapital.com_gslb_svr_trm 10.31.161.80
+add server ops-wires.qa1.aqrcapital.com_gslb_svr_grn 10.30.177.80
+
+add serviceGroup ops-wires.qa1.aqrcapital.com_svg_15121_grn HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.qa1.aqrcapital.com_svg_15121_grn vt0qweb21 15121
+bind serviceGroup ops-wires.qa1.aqrcapital.com_svg_15121_grn -monitorName http-ecv
+
+add lb vserver ops-wires.qa1.aqrcapital.com_vip_80_grn HTTP 10.30.177.37 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.qa1.aqrcapital.com_vip_80_grn ops-wires.qa1.aqrcapital.com_svg_15121_grn
+
+add gslb service ops-wires.qa1.aqrcapital.com_gslb_svc_grn ops-wires.qa1.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.qa1.aqrcapital.com_gslb_svc_trm ops-wires.qa1.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_grn HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.qa1.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.qa1.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.qa1.aqrcapital.com_gslb_vip_grn -domainName ops-wires.qa1.int.aqrcapital.com -TTL 5
+
+
+---
+
+
+add server ops-wires.stg.aqrcapital.com_gslb_svr_trm 10.31.165.100
+add server ops-wires.stg.aqrcapital.com_gslb_svr_grn 10.30.181.100
+
+add serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_grn HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_grn vg0sweb21 15121
+bind serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_grn vt0sweb21 15121
+bind serviceGroup ops-wires.stg.aqrcapital.com_svg_15121_grn -monitorName http-ecv
+
+add lb vserver ops-wires.stg.aqrcapital.com_vip_80_grn HTTP 10.30.181.37 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.stg.aqrcapital.com_vip_80_grn ops-wires.stg.aqrcapital.com_svg_15121_grn
+
+add gslb service ops-wires.stg.aqrcapital.com_gslb_svc_grn ops-wires.stg.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.stg.aqrcapital.com_gslb_svc_trm ops-wires.stg.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_grn HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.stg.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.stg.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.stg.aqrcapital.com_gslb_vip_grn -domainName ops-wires.stg.int.aqrcapital.com -TTL 5
+
+
+---
+
+
+add server ops-wires.prd.aqrcapital.com_gslb_svr_trm 10.31.45.61
+add server ops-wires.prd.aqrcapital.com_gslb_svr_grn 10.30.45.61
+
+add serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_grn HTTP -maxClient 0 -maxReq 0 -cip ENABLED X-Forwarded-For -usip NO -useproxyport YES -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB YES -CMP YES -comment INC0391108
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_grn sg0pweb16 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_grn st0pweb16 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_grn sg0pweb17 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_grn st0pweb17 15121
+bind serviceGroup ops-wires.prd.aqrcapital.com_svg_15121_grn -monitorName http-ecv
+
+add lb vserver ops-wires.prd.aqrcapital.com_vip_80_grn HTTP 10.30.45.61 80 -persistenceType COOKIEINSERT -timeout 0 -persistenceBackup SOURCEIP -backupPersistenceTimeout 60 -cltTimeout 180 -comment INC0391108
+bind lb vserver ops-wires.prd.aqrcapital.com_vip_80_grn ops-wires.prd.aqrcapital.com_svg_15121_grn
+
+add gslb service ops-wires.prd.aqrcapital.com_gslb_svc_grn ops-wires.prd.aqrcapital.com_gslb_svr_grn HTTP 80 -maxClient 0 -siteName Greenwich -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+add gslb service ops-wires.prd.aqrcapital.com_gslb_svc_trm ops-wires.prd.aqrcapital.com_gslb_svr_trm HTTP 80 -maxClient 0 -siteName Trumbull -cltTimeout 180 -svrTimeout 360 -downStateFlush ENABLED -comment INC0391108
+
+add gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_grn HTTP -backupLBMethod ROUNDROBIN -tolerance 0 -appflowLog DISABLED -comment INC0391108
+bind gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.prd.aqrcapital.com_gslb_svc_grn
+bind gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_grn -serviceName ops-wires.prd.aqrcapital.com_gslb_svc_trm
+bind gslb vserver ops-wires.prd.aqrcapital.com_gslb_vip_grn -domainName ops-wires.prd.int.aqrcapital.com -TTL 5
+
+
+~~~~~~~~~~~~~~~~~~~~ SPNS
+
+
+#region -- Setting SPNs
+
+    if ($SPN -eq $true) {
+
+        $WriteHost = Write-Host $("`nSetting SPNs...") -ForegroundColor Cyan -BackgroundColor Black
+        $WriteHost
+
+        # Set the SPNs for the VIPs created.  
+        setspn -S HTTP/$($VIPName).$($Env).aqrcapital.com AQR\$($ServiceAccount)
+        setspn -S HTTP/$($VIPName).$($Env).int.aqrcapital.com AQR\$($ServiceAccount)
+
+        $WriteHost = Write-Host $("`nFinsihed running SPN Commands") -ForegroundColor Yellow -BackgroundColor Black
+        $WriteHost
+
+    } else {
+
+        $WriteHost = Write-Host $("`nSPN flag not true, skipping...") -ForegroundColor Cyan -BackgroundColor Black
+        $WriteHost
+
+    }
+
+    #endregion
