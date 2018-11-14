@@ -1,30 +1,47 @@
 # NetScaler Configuration Extractor
 # Note: This script works on Windows 10, but the regex match group commands fail on Windows 7
-1
-# Full path to source config file saved from NetScaler (System > Diagnostics > Running Configuration)
-# If set to "", then the script will prompt for the file.
-$configFile = ""
-#$configFile = "C:\Users\carls\Downloads\nsrunning.conf"
 
-# Name of vServer - or VIP - case insensitive
-# Partial match supported - if more than one match, the script will prompt for a selection. Set it to "" to list all vServers.
-# If vserver name is exact match for one vserver, that vserver will be used, even if it's a substring match for another vserver
-$vserver = ""
+param (
+    # Full path to source config file saved from NetScaler (System > Diagnostics > Running Configuration)
+    # If set to "", then the script will prompt for the file.
+    [string]$configFile = "",
+    #$configFile = "$env:userprofile\Downloads\nsrunning.conf"
 
-# Optional filename to save output - file will be overwritten
-# If you intend to batch import to NetScaler, then no spaces or capital letters in the file name.
-# If set to "screen", then output will go to screen.
-# If set to "", then the script will prompt for a file. Clicking cancel will output to the screen.
-#$outputFile = ""
-#$outputFile = "screen"
-$outputFile = "C:\Users\carls\Downloads\nsconfig.conf"
+    # Name of vServer - or VIP - case insensitive
+    # Partial match supported - if more than one match, the script will prompt for a selection. Set it to "" to list all vServers.
+    # If vserver name is exact match for one vserver, that vserver will be used, even if it's a substring match for another vserver
+    [string]$vserver = "",
 
-# Optional text editor to open saved output file - text editor should handle UNIX line endings (e.g. Wordpad or Notepad++)
-$textEditor = "c:\Program Files (x86)\Notepad++\notepad++.exe"
+    # Optional filename to save output - file will be overwritten
+    # If you intend to batch import to NetScaler, then no spaces or capital letters in the file name.
+    # If set to "screen", then output will go to screen.
+    # If set to "", then the script will prompt for a file. Clicking cancel will output to the screen.
+    #$outputFile = ""
+    #$outputFile = "screen"
+    [string]$outputFile = "$env:userprofile\Downloads\nsconfig.conf",
 
+    # Optional text editor to open saved output file - text editor should handle UNIX line endings (e.g. Wordpad or Notepad++)
+    [string]$textEditor = "c:\Program Files (x86)\Notepad++\notepad++.exe",
 
-# Changelog
-# ---------
+    # Optional get CSW vserver Binds for selected LB and/or VPN virtual server
+    [switch]$cswBind
+)
+
+# Change Log
+# ----------
+# 2018 Nov 5 - check text editor existince (h/t Bjørn-Kåre Flister)
+# 2018 Nov 5 - switch to extract CS vServer for selected LB/VPN/AAA vServer (h/t Bjørn-Kåre Flister)
+# 2018 Sep 19 - fixed SAML Policy and SAML Action
+# 2018 Sep 11 - parameterized the script, fixed specified vServer
+# 2018 July 22 - added ICA Parameters to VPN Global Settings
+# 2018 July 18 - added preauthentication policy, added AlwaysOn profile
+# 2018 July 12 - added two levels of nFactor NextFactor extraction
+# 2018 July 8 - added DNS configuration to every extraction
+# 2018 July 7 - added GSLB Sites and rpcNodes
+# 2018 July 4 - extract local LB VIPs from Session Action URLs (e.g. StoreFront URL to local LB VIP)
+# 2018 July 3 - extract DNS vServers from "set vpn parameter" and Session Actions
+# 2018 July 3 - added "*" to select all vServers
+# 2018 July 3 - updated for 12.1 (SSL Log Profile, IP Set, Analytics Profile)
 # 2018 Jan 23 - skip gobal cache settings if cache feature is not enabled
 # 2018 Jan 4 - Sirius' Mark Scott added code to browse to open and save files. Added kcdaccounts to extraction.
 
@@ -197,16 +214,17 @@ function addNSObject ($NSObjectType, $NSObjectName) {
 
         # Look for DNS Records
         $foundObjects = getNSObjects $filteredConfig "dns addRec"
-        if ($foundObjects) { 
+        if ($foundObjects) 
+        { 
             $nsObjects."dns addRec" += $foundObjects
             $nsObjects."dns addRec" = @($nsObjects."dns addRec" | Select-Object -Unique) 
         }
         $foundObjects = getNSObjects $filteredConfig "dns nsRec"
-        if ($foundObjects) { 
+        if ($foundObjects) 
+        { 
             $nsObjects."dns nsRec" += $foundObjects
             $nsObjects."dns nsRec" = @($nsObjects."dns nsRec" | Select-Object -Unique) 
         }
-        
     }
 }
 
@@ -274,8 +292,55 @@ function getNSObjects ($matchConfig, $NSObjectType, $paramName, $position) {
 }
 
 
+function getHttpVServer ($matchConfig) {
+    # Matches local LB/CS vServer VIPs in URLs (e.g. StoreFront URL) - No FQDN support
 
-function outputObjectConfig ($header, $NSObjectKey, $NSObjectType,$explainText) {
+    # Read all LB/CS objects of protocol HTTP/SSL from from full config. Extract Name, IP, and Port
+    if ($matchConfig -match "http://") 
+    {
+        $objectsAll = $config | select-string -Pattern '^add (lb|cs) vserver (".*?"|[^-"]\S+) HTTP (\d+\.\d+.\d+\.\d+) (\d+) ' | % { New-Object PSObject -property @{
+            Name = $_.Matches.Groups[2].value
+            IP = $_.Matches.Groups[3].value
+            Port = $_.Matches.Groups[4].value
+            }
+        }
+    } 
+    elseif ($matchConfig -match "https://")
+    {
+        $objectsAll = $config | select-string -Pattern '^add (lb|cs) vserver (".*?"|[^-"]\S+) SSL (\d+\.\d+.\d+\.\d+) (\d+)' | % { New-Object PSObject -property @{
+            Name = $_.Matches.Groups[2].value
+            IP = $_.Matches.Groups[3].value
+            Port = $_.Matches.Groups[4].value
+            }
+        }
+    }
+    
+    # Check URL for matching VIP and/or Port number
+    $objectMatches = @()
+    foreach ($objectCandidate in $objectsAll) 
+    {
+        if ($matchConfig -match $objectCandidate.IP)
+        {
+            if ($matchConfig -match ":\d+/")
+            {
+                if ($matchConfig -match (":" + $objectCandidate.Port + "/"))
+                {
+                    $objectMatches += $objectCandidate.Name
+                }
+            } 
+            elseif ($objectCandidate.Port -eq "80" -or $objectCandidate.Port -eq "443") 
+            {
+                $objectMatches += $objectCandidate.Name
+            }
+        }
+    }
+    
+    return $objectMatches
+}
+
+
+
+function outputObjectConfig ($header, $NSObjectKey, $NSObjectType, $explainText) {
     $uniqueObjects = $NSObjects.$NSObjectKey | Select-Object -Unique
     
     # Build header line
@@ -305,11 +370,11 @@ function outputObjectConfig ($header, $NSObjectKey, $NSObjectType,$explainText) 
                 $matchedConfig += $config -match "[^-\S]" + $NSObjectKey + " " + $uniqueObject + "[^\S]" 
             }
             # if ($uniqueObject -eq "NO_RW_192\.168\.192\.242") {write-host $uniqueObject $matchedConfig}
-
+            
             $matchedConfig += "`n"
         }
     }
-    
+
     if ($explainText) { 
         $explainText = @($explainText -split "`n")
         $explainText | % {
@@ -357,7 +422,9 @@ do {
     # Get matching vServer Names. If more than one, prompt for selection.
     # This loop allows users to change the vServer filter text
 
-    if ($vserver -match " ") { $vserver = [char]34 + $vserver + [char]34 }
+    if ($vserver -match " ") { 
+        $vserver = [char]34 + $vserver + [char]34 
+    }
     $vservers = $config -match "$vserver" | select-string -Pattern ('^add \w+ vserver (".*?"|[^-"]\S+)') | % {$_.Matches.Groups[1].value}
     if (!$vservers) {
         # Try substring matches without quotes
@@ -365,7 +432,7 @@ do {
         $vservers = $config -match "$vserver" | select-string -Pattern ('^add \w+ vserver (".*?"|[^-"]\S+)') | % {$_.Matches.Groups[1].value}
     }
     
-    # Make sure it's an array, even it only one match
+    # Make sure it's an array, even if only one match
     $vservers = @($vservers)
 
     # FirstLoop flag enables running script without prompting. 
@@ -373,7 +440,7 @@ do {
     if (($vservers.length -eq 1 -and $firstLoop) -or $vservers -contains $vserver) { 
         # Get vServer Type
         $vserverType = $config -match " $vservers " | select-string -Pattern ('^add (\w+) vserver') | % {$_.Matches.Groups[1].value}
-        addNSObject "$_ vserver" $vservers
+        addNSObject ($vserverType + " vserver") $vservers
         $selectionDone = $true
     } else {
         # Prompt for vServer selection
@@ -414,29 +481,49 @@ do {
                 $count++
             }
             write-host ""
-            $entry = read-host "Enter Virtual Server Number to select/deselect, 0 for new filter string, or <Enter> to begin extraction"
-            if ($entry -eq "") { $selectionDone = $true; break }
-            try {
-                $entry = [int]$entry
-                if ($entry -lt 0 -or $entry -gt $count) {
+            $entry = read-host "Enter Number to select/deselect, * for all, 0 for new filter string, or <Enter> to begin extraction"
+            if (!$entry -or $entry -eq "") { $selectionDone = $true; break }
+            if ($entry -eq "*")
+            {
+                for ($x = 0; $x -lt $selected.length; $x++) {
+                    if ($selected[$x] -eq "*") { 
+                        $selected[$x] = "" 
+                    } else
+                    { 
+                        $selected[$x] = "*" 
+                    }
+                }
+            } else
+            {
+                try
+                {
+                    $entry = [int]$entry
+                    if ($entry -lt 0 -or $entry -gt $count) 
+                    {
+                        write-host "`nInvalid entry. Press Enter to try again. ";read-host
+                        $entry = "retry"
+                    } elseif ($entry -ge 1 -and $entry -le $count) 
+                    {
+                        # Swap select status
+                        if ($selected[$entry -1] -eq "*") 
+                        { 
+                            $selected[$entry-1] = "" 
+                        } else
+                        { 
+                            $selected[$entry-1] = "*" 
+                        }
+                    } elseif ($entry -eq 0) 
+                    {
+                        $newFilter = read-host "Enter new filter string"
+                        $vserver = $newFilter
+                        $entry = ""
+                        $selected = ""
+                    }
+                } catch 
+                {
                     write-host "`nInvalid entry. Press Enter to try again. ";read-host
                     $entry = "retry"
-                } elseif ($entry -ge 1 -and $entry -le $count) {
-                    # Swap select status
-                    if ($selected[$entry -1] -eq "*") { 
-                        $selected[$entry-1] = "" 
-                    } else { 
-                        $selected[$entry-1] = "*" 
-                    }
-                } elseif ($entry -eq 0) {
-                    $newFilter = read-host "Enter new filter string"
-                    $vserver = $newFilter
-                    $entry = ""
-                    $selected = ""
                 }
-            } catch {
-                write-host "`nInvalid entry. Press Enter to try again. ";read-host
-                $entry = "retry"
             }
         } while ($entry -and $entry -ne "")
 
@@ -466,8 +553,54 @@ if (!$vservers) { exit }
 
 $Timer = [system.diagnostics.stopwatch]::StartNew()
 
-# Look for Backup CSW vServers
+# Get DNS Servers
+addNSObject "dns nameServer" (getNSObjects ($config -match "add dns nameServer") "dns nameServer")
+if ($nsObjects."dns nameServer") 
+{
+    foreach ($nameserver in $nsObjects."dns nameServer") {
+        $nameServerConfig = $config -match " $nameserver "
+        addNSObject "lb vserver" (getNSObjects $nameServerConfig "lb vserver")
+    }
+}
+
+
+# If $cswBind switch is true, look for CS vServers that the LB, AAA, and/or VPN vServers are bound to.
+if ($cswBind){
+    $cswBindType = @{lb='lbvserver';vpn='vserver';authentication='vserver'}
+    foreach ($vsrvType in 'lb','vpn','authentication' ) {
+        if ($nsObjects."$vsrvType vserver") {
+            foreach ($vsrv in $nsObjects."$vsrvType vserver")
+            {
+                # CSW Default virtual server
+                if ($config -match "bind cs vserver .* -$($cswBindType.$vsrvType) $vsrv"){
+                    addNSObject "cs vserver" ($config -match "bind cs vserver .* -$($cswBindType.$vsrvType) $vsrv" | select-string -Pattern ('^bind cs vserver (".*?"|[^-"]\S+)') | % {$_.Matches.Groups[1].value})
+                }
+                # CSW Policy Bind -targetlbserver
+                if ($config -match "bind cs vserver .* -policyName .* -targetLBVserver $vsrv"){
+                    addNSObject "cs vserver" ($config -match "bind cs vserver .* -policyName .* -targetLBVserver $vsrv" | select-string -Pattern ('^bind cs vserver (".*?"|[^-"]\S+)') | % {$_.Matches.Groups[1].value})
+                }
+                # CSW Action -targetlbserver -targetvserver
+                if ($config -match "add cs action .* -target$($cswBindType.$vsrvType) $vsrv"){
+                    $csaction = ($config -match "add cs action .* -target$($cswBindType.$vsrvType) $vsrv" | select-string -Pattern ('^add cs action (".*?"|[^-"]\S+)') | % {$_.Matches.Groups[1].value})
+                    #CS Policy for CS Action
+                    $cspolicy = ($config -match "add cs policy .* -action $csaction" | select-string -Pattern ('^add cs policy (".*?"|[^-"]\S+)') | % {$_.Matches.Groups[1].value})
+                    #CS vServer for CS Policy
+                    addNSObject "cs vserver" ($config -match "bind cs vserver .* -policyName $cspolicy" | select-string -Pattern ('^bind cs vserver (".*?"|[^-"]\S+)') | % {$_.Matches.Groups[1].value})
+                }
+            }
+        }
+    }
+}
+
+# Look for Backup CSW vServers and Linked LB vServers
 if ($nsObjects."cs vserver") {
+    if ($config -match "enable ns feature.* CS") 
+    {
+        $NSObjects."cs parameter" = @("enable ns feature CS")
+    } else {
+        $NSObjects."cs parameter" = @("# *** CS feature is not enabled")
+    }
+    
     foreach ($csvserver in $nsObjects."cs vserver") {
         $vserverConfig = $config -match " $csvserver "
         # Backup VServers should be created before Active VServers
@@ -478,6 +611,7 @@ if ($nsObjects."cs vserver") {
             addNSObject "cs vserver" ($backupVServers)
             $nsObjects."cs vserver" += $currentVServers
         }
+        addNSObject "lb vserver" (getNSObjects $vserverconfig "lb vserver" "-targetLBVserver")2
     }
 }
 
@@ -526,6 +660,8 @@ if ($nsObjects."cs vserver") {
         addNSObject "feo policy" (getNSObjects $vserverConfig "feo policy" "-policyName")
         addNSObject "spillover policy" (getNSObjects $vserverConfig "spillover policy" "-policyName")
         addNSObject "appqoe policy" (getNSObjects $vserverConfig "appqoe policy" "-policyName")
+        addNSObject "ipset" (getNSObjects $vserverConfig "ipset" "-ipset")
+        addNSObject "analytics profile" (getNSObjects $vserverConfig "analytics profile" "-analyticsProfile")
     }
 }
 
@@ -550,6 +686,7 @@ if ($NSObjects."cs policy") {
         foreach ($action in $NSObjects."cs action") {
             addNSObject "lb vserver" (getNSObjects ($config -match " $action ") "lb vserver" "-targetLBVserver")
             addNSObject "vpn vserver" (getNSObjects ($config -match " $action ") "vpn vserver" "-targetVserver")
+            addNSObject "authentication vserver" (getNSObjects ($config -match " $action ") "authentication vserver" "-targetVserver")
             addNSObject "gslb vserver" (getNSObjects ($config -match " $action ") "gslb vserver" "-targetVserver")
         }
     }
@@ -606,6 +743,8 @@ if ($nsObjects."cr vserver") {
         addNSObject "spillover policy" (getNSObjects $vserverConfig "spillover policy" "-policyName")
         addNSObject "appqoe policy" (getNSObjects $vserverConfig "appqoe policy" "-policyName")
         addNSObject "ica policy" (getNSObjects $vserverConfig "ica policy" "-policyName")
+        addNSObject "ipset" (getNSObjects $vserverConfig "ipset" "-ipset")
+        addNSObject "analytics profile" (getNSObjects $vserverConfig "analytics profile" "-analyticsProfile")
     }
 }
 
@@ -670,21 +809,39 @@ if ($nsObjects."gslb vserver") {
     foreach ($gslbvserver in $nsObjects."gslb vserver") {
         $vserverConfig = $config -match " $gslbvserver "
         addNSObject "gslb service" (getNSObjects $vserverConfig "gslb service" "-serviceName")
-        if ($NSObjects."gslb service") {
-            foreach ($service in $NSObjects."gslb service") { 
-                # wrap config matches in spaces to avoid substring matches
-                $serviceConfig = $config -match " $service "
-                addNSObject "monitor" (getNSObjects $serviceConfig "lb monitor" "-monitorName")
-                addNSObject "server" (getNSObjects $serviceConfig "server")
-                addNSObject "ssl profile" (getNSObjects $serviceConfig "ssl profile")
-                addNSObject "netProfile" (getNSObjects $serviceConfig "netProfile" "-netProfile")
-                addNSObject "ns trafficDomain" (getNSObjects $serviceConfig "ns trafficDomain" "-td")
-                addNSObject "dns view" (getNSObjects $serviceConfig "dns view" "-viewName")
-            }
-        }
         addNSObject "ssl vserver" (getNSObjects ($config -match "ssl vserver $gslbvserver ") "ssl vserver")
+        addNSObject "dns soaRec" (getNSObjects $vserverConfig "dns soaRec")
+        addNSObject "dns nsRec" (getNSObjects $vserverConfig "dns nsRec")
     }
-    addNSObject "gslb location" ($config -match "^set locationParameter ") "gslb location"
+
+    if ($NSObjects."gslb service")
+    {
+        foreach ($service in $NSObjects."gslb service") 
+        { 
+            # wrap config matches in spaces to avoid substring matches
+            $serviceConfig = $config -match " $service "
+            addNSObject "monitor" (getNSObjects $serviceConfig "lb monitor" "-monitorName")
+            addNSObject "server" (getNSObjects $serviceConfig "server")
+            addNSObject "ssl profile" (getNSObjects $serviceConfig "ssl profile")
+            addNSObject "netProfile" (getNSObjects $serviceConfig "netProfile" "-netProfile")
+            addNSObject "ns trafficDomain" (getNSObjects $serviceConfig "ns trafficDomain" "-td")
+            addNSObject "dns view" (getNSObjects $serviceConfig "dns view" "-viewName")
+            addNSObject "gslb site" (getNSObjects $serviceConfig "gslb site" "-siteName")
+        }
+    }
+    
+    if ($NSObjects."gslb site")
+    {
+        foreach ($site in $NSObjects."gslb site") 
+        { 
+            $siteConfig = $config -match "add gslb site $site "
+            addNSObject "ns rpcNode" (getNSObjects $siteConfig "ns rpcNode")
+        }
+    }
+     
+    addNSObject "dns cnameRec" (getNSObjects ($config -match "^add dns cnameRec ") "dns cnameRec")
+    addNSObject "dns addRec" (getNSObjects ($config | select-string -Pattern "^add dns addRec" | select-string -NotMatch -Pattern ".root-servers.net") "dns addRec")
+    addNSObject "gslb location" ($config -match "^set locationParameter") "gslb location"
     addNSObject "gslb location" ($config -match " locationFile ") "gslb location"
     addNSObject "gslb location" ($config -match "^add location ") "gslb location"
     addNSObject "gslb parameter" ($config -match "^set gslb parameter ") "gslb parameter"
@@ -737,6 +894,7 @@ if ($nsObjects."vpn vserver") {
         $NSObjects."vpn parameter" = @("# *** NetScaler Gateway feature is not enabled")
     }
     addNSObject "vpn parameter" ($config -match "vpn parameter") "vpn parameter"
+    addNSObject "vpn parameter" ($config -match "ica parameter") "vpn parameter"
     addNSObject "vpn parameter" ($config -match "aaa parameter") "vpn parameter"
     addNSObject "vpn parameter" ($config -match "dns suffix") "vpn parameter"
     foreach ($vpnvserver in $nsObjects."vpn vserver") {
@@ -763,6 +921,7 @@ if ($nsObjects."vpn vserver") {
         addNSObject "authentication negotiatePolicy" (getNSObjects $vserverConfig "authentication negotiatePolicy")
         addNSObject "authentication tacacsPolicy" (getNSObjects $vserverConfig "authentication tacacsPolicy")
         addNSObject "authentication webAuthPolicy" (getNSObjects $vserverConfig "authentication webAuthPolicy")
+        addNSObject "aaa preauthenticationpolicy" (getNSObjects $vserverConfig "aaa preauthenticationpolicy" "-policy")
         addNSObject "vpn sessionPolicy" (getNSObjects $vserverConfig "vpn sessionPolicy" "-policy")
         addNSObject "vpn trafficPolicy" (getNSObjects $vserverConfig "vpn trafficPolicy" "-policy")
         addNSObject "vpn clientlessAccessPolicy" (getNSObjects $vserverConfig "vpn clientlessAccessPolicy" "-policy")
@@ -785,6 +944,8 @@ if ($nsObjects."vpn vserver") {
         addNSObject "ssl certKey" (getNSObjects $vserverConfig "ssl certKey" "-certkeyName")
         addNSObject "ssl vserver" (getNSObjects ($config -match "ssl vserver $vpnvserver ") "ssl vserver")
         addNSObject "vpn url" (getNSObjects $vserverConfig "vpn url" "-urlName")
+        addNSObject "ipset" (getNSObjects $vserverConfig "ipset" "-ipset")
+        addNSObject "analytics profile" (getNSObjects $vserverConfig "analytics profile" "-analyticsProfile")
     }
     addNSObject "aaa group" (getNSObjects ($config -match "add aaa group") "aaa group")
     addNSObject "vpn global" ($config -match "bind vpn global ") "vpn global"
@@ -850,6 +1011,15 @@ if ($nsObjects."vpn global") {
     addNSObject "ica policy" (getNSObjects $vserverConfig "ica policy" "-policyName")
     addNSObject "ssl policy" (getNSObjects $vserverConfig "ssl policy" "-policyName")
     addNSObject "vpn url" (getNSObjects $vserverConfig "vpn url" "-urlName")
+    addNSObject "ssl certKey" (getNSObjects $vserverConfig "ssl certKey" "-certkeyName")
+    addNSObject "ssl certKey" (getNSObjects $vserverConfig "ssl certKey" "-cacert")
+    
+    $vserverConfig = $config -match "set vpn parameter "
+    addNSObject "lb vserver" (getNSObjects $vserverConfig "lb vserver" "-dnsVserverName")
+    addNSObject "vpn alwaysONProfile" (getNSObjects $vserverConfig "vpn alwaysONProfile" "-alwaysONProfileName")
+    addNSObject "aaa kcdAccount" (getNSObjects $vserverConfig "aaa kcdAccount" "-kcdAccount")
+    addNSObject "vpn pcoipProfile" (getNSObjects $vserverConfig "vpn pcoipProfile" "-pcoipProfileName")
+    addNSObject "rdp clientprofile" (getNSObjects $vserverConfig "rdp clientprofile" "-rdpClientProfileName")
 }
 
 
@@ -878,6 +1048,51 @@ if ($nsObjects."lb vserver") {
             $nsObjects."lb vserver" = @()
             addNSObject "lb vserver" ($backupVServers)
             $nsObjects."lb vserver" += $currentVServers
+        }
+    }
+}
+
+
+# Get objects linked to AAA Groups
+if ($nsObjects."aaa group") {
+    foreach ($group in $nsObjects."aaa group") {
+        $groupConfig = $config -match " aaa group $group "
+        addNSObject "vpn intranetApplication" (getNSObjects $groupConfig "vpn intranetApplication" "-intranetApplication")
+        addNSObject "vpn sessionPolicy" (getNSObjects $groupConfig "vpn sessionPolicy" "-policy")
+        addNSObject "vpn trafficPolicy" (getNSObjects $groupConfig "vpn trafficPolicy" "-policy")
+        addNSObject "authorization policylabel" (getNSObjects $vserverConfig "authorization policylabel")
+        addNSObject "authorization policy" (getNSObjects $groupConfig "authorization policy" "-policy")
+        addNSObject "vpn url" (getNSObjects $groupConfig "vpn url" "-urlName")
+    }
+}
+
+
+# Get Preauthentication Actions from Preauthentication Policies
+if ($NSObjects."aaa preauthenticationpolicy") {
+    foreach ($policy in $NSObjects."aaa preauthenticationpolicy") {
+        addNSObject "aaa preauthenticationaction" (getNSObjects ($config -match "aaa preauthenticationpolicy $policy ") "aaa preauthenticationaction" -position 4)
+    }
+}
+
+
+# Get VPN Session Actions from VPN Session Policies
+if ($NSObjects."vpn sessionPolicy") {
+    foreach ($policy in $NSObjects."vpn sessionPolicy") {
+        addNSObject "vpn sessionAction" (getNSObjects ($config -match "vpn sessionPolicy $policy ") "vpn sessionAction" -position 4)
+    }
+}
+
+
+# Get KCD Accounts and DNS LB vServers from VPN Session Actions
+if ($NSObjects."vpn sessionAction") {
+    foreach ($profile in $NSObjects."vpn sessionAction") 
+    {
+        $profileConfig = $config -match "vpn sessionAction $profile "
+        addNSObject "aaa kcdAccount" (getNSObjects $profileConfig "aaa kcdAccount" "-kcdAccount")
+        addNSObject "lb vserver" (getNSObjects $profileConfig "lb vserver" "-dnsVserverName")
+        if ($profileConfig -match "http://" -or $profileConfig -match "https://")
+        {
+            addNSObject "lb vserver" (getHttpVServer $profileConfig)            
         }
     }
 }
@@ -914,6 +1129,7 @@ if ($nsObjects."lb vserver") {
                 addNSObject "ns httpProfile" (getNSObjects $serviceConfig "ns httpProfile" "-httpProfileName")
                 addNSObject "ssl cipher" (getNSObjects $serviceConfig "ssl cipher")
                 addNSObject "ssl certKey" (getNSObjects $serviceConfig "ssl certKey" "-certkeyName")
+                addNSObject "ssl certKey" (getNSObjects $serviceConfig "ssl certKey" "-cacert")
             }
         }
         addNSObject "serviceGroup" (getNSObjects $vserverConfig "serviceGroup")
@@ -928,6 +1144,7 @@ if ($nsObjects."lb vserver") {
                 addNSObject "ns httpProfile" (getNSObjects $serviceConfig "ns httpProfile" "-httpProfileName")
                 addNSObject "ssl cipher" (getNSObjects $serviceConfig "ssl cipher")
                 addNSObject "ssl certKey" (getNSObjects $serviceConfig "ssl certKey" "-certkeyName")
+                addNSObject "ssl certKey" (getNSObjects $serviceConfig "ssl certKey" "-cacert")
             }
         }
         addNSObject "netProfile" (getNSObjects $vserverConfig "netProfile" "-netProfile")
@@ -940,6 +1157,7 @@ if ($nsObjects."lb vserver") {
         addNSObject "ssl cipher" (getNSObjects $vserverConfig "ssl cipher" "-cipherName")
         addNSObject "ssl profile" (getNSObjects $vserverConfig "ssl profile")
         addNSObject "ssl certKey" (getNSObjects $vserverConfig "ssl certKey" "-certkeyName")
+        addNSObject "ssl certKey" (getNSObjects $vserverConfig "ssl certKey" "-cacert")
         addNSObject "ssl vserver" (getNSObjects ($config -match "ssl vserver $lbvserver ") "ssl vserver")
         addNSObject "responder policy" (getNSObjects $vserverConfig "responder policy" "-policyName")
         addNSObject "responder policylabel" (getNSObjects $vserverConfig "responder policylabel" "policylabel")
@@ -967,6 +1185,7 @@ if ($nsObjects."lb vserver") {
         addNSObject "ns httpProfile" (getNSObjects $vserverConfig "ns httpProfile" "-httpProfileName")
         addNSObject "db dbProfile" (getNSObjects $vserverConfig "db dbProfile" "-dbProfileName")
         addNSObject "lb profile" (getNSObjects $vserverConfig "lb profile" "-lbprofilename")
+        addNSObject "ipset" (getNSObjects $vserverConfig "ipset" "-ipset")
     }
 }
 
@@ -984,7 +1203,7 @@ if ($NSObjects."authentication vserver") {
     if ($config -match "enable ns feature.* rewrite") {
         $NSObjects."authentication param" = @("enable ns feature AAA")
     } else {
-        $NSObjects."authentication param" = @("# AAA feature is not enabled")
+        $NSObjects."authentication param" = @("# *** AAA feature is not enabled")
     }
     foreach ($authVServer in $NSObjects."authentication vserver") {
         $vserverConfig = $config -match " $authVServer "
@@ -1011,6 +1230,7 @@ if ($NSObjects."authentication vserver") {
         addNSObject "ssl cipher" (getNSObjects $vserverConfig "ssl cipher" "-cipherName")
         addNSObject "ssl profile" (getNSObjects $vserverConfig "ssl profile")
         addNSObject "ssl certKey" (getNSObjects $vserverConfig "ssl certKey" "-certkeyName")
+        addNSObject "ssl certKey" (getNSObjects $vserverConfig "ssl certKey" "-cacert")
         addNSObject "ssl vserver" (getNSObjects ($config -match "ssl vserver $authVServer ") "ssl vserver")
     }
 }
@@ -1039,12 +1259,25 @@ if ($NSObjects."ssl vserver") {
     foreach ($vserver in $NSObjects."ssl vserver") {
         addNSObject "ssl cipher" (getNSObjects ($config -match " ssl vserver $vserver ") "ssl cipher" "-cipherName")
         addNSObject "ssl certKey" (getNSObjects ($config -match " ssl vserver $vserver ") "ssl certKey" "-certkeyName")
+        addNSObject "ssl certKey" (getNSObjects ($config -match " ssl vserver $vserver ") "ssl certKey" "-cacert")
+        addNSObject "ssl logprofile" (getNSObjects ($config -match " ssl vserver $vserver ") "ssl logprofile" "-ssllogprofile")
+        addNSObject "ssl profile" (getNSObjects ($config -match " ssl vserver $vserver ") "ssl profile" "-sslProfile")
     }
 }
 
 
 # Get Authentication Policies and Login Schemas from Authentication Policy Labels
 if ($NSObjects."authentication policylabel") {
+    # Get Next Factors
+    foreach ($policy in $NSObjects."authentication policylabel") {
+        addNSObject "authentication policylabel" (getNSObjects ($config -match " $policy ") "authentication policylabel" "-nextFactor")
+    }
+
+    # Get Next Factors Again (deeper level)
+    foreach ($policy in $NSObjects."authentication policylabel") {
+        addNSObject "authentication policylabel" (getNSObjects ($config -match " $policy ") "authentication policylabel" "-nextFactor")
+    }
+
     foreach ($policy in $NSObjects."authentication policylabel") {
         addNSObject "authentication policy" (getNSObjects ($config -match " $policy ") "authentication policy")
         addNSObject "authentication loginSchema" (getNSObjects ($config -match " $policy ") "authentication loginSchema")
@@ -1185,20 +1418,6 @@ foreach ($action in $NSObjects."authentication samlAction") {
 }
 foreach ($action in $NSObjects."authentication webAuthAction") {
     addNSObject "aaa group" (getNSObjects ($config -match "authentication webAuthAction $action ") "aaa group" "-defaultAuthenticationGroup")
-}
-
-
-# Get objects linked to AAA Groups
-if ($nsObjects."aaa group") {
-    foreach ($group in $nsObjects."aaa group") {
-        $groupConfig = $config -match " aaa group $group "
-        addNSObject "vpn intranetApplication" (getNSObjects $groupConfig "vpn intranetApplication" "-intranetApplication")
-        addNSObject "vpn sessionPolicy" (getNSObjects $groupConfig "vpn sessionPolicy" "-policy")
-        addNSObject "vpn trafficPolicy" (getNSObjects $groupConfig "vpn trafficPolicy" "-policy")
-        addNSObject "authorization policylabel" (getNSObjects $vserverConfig "authorization policylabel")
-        addNSObject "authorization policy" (getNSObjects $groupConfig "authorization policy" "-policy")
-        addNSObject "vpn url" (getNSObjects $groupConfig "vpn url" "-urlName")
-    }
 }
 
 
@@ -1430,22 +1649,6 @@ if ($NSObjects."vpn trafficAction") {
 }
 
 
-# Get VPN Session Actions from VPN Session Policies
-if ($NSObjects."vpn sessionPolicy") {
-    foreach ($policy in $NSObjects."vpn sessionPolicy") {
-        addNSObject "vpn sessionAction" (getNSObjects ($config -match "vpn sessionPolicy $policy ") "vpn sessionAction" -position 4)
-    }
-}
-
-
-# Get KCD Accounts from VPN Session Actions
-if ($NSObjects."vpn trafficAction") {
-    foreach ($profile in $NSObjects."vpn sessionAction") {
-        addNSObject "aaa kcdAccount" (getNSObjects ($config -match "vpn sessionAction $profile ") "aaa kcdAccount" "-kcdAccount")
-    }
-}
-
-
 # Get Authorization Policies from Authorization Policy Labels
 if ($NSObjects."authorization policylabel") {
     foreach ($policy in $NSObjects."authorization policylabel") {
@@ -1490,11 +1693,12 @@ if ($NSObjects."vpn trafficAction") {
 }
 
 
-# Get PCoIP and RDP Profiles from VPN Session Actions
+# Get PCoIP and RDP Profiles, and AlwaysOn Profiles from VPN Session Actions
 if ($NSObjects."vpn sessionAction") {
     foreach ($policy in $NSObjects."vpn sessionAction") {
         addNSObject "vpn pcoipProfile" (getNSObjects ($config -match " $policy ") "vpn pcoipProfile" -position 4)
         addNSObject "rdp clientprofile" (getNSObjects ($config -match " $policy ") "rdp clientprofile" -position 4)
+        addNSObject "vpn alwaysONProfile" (getNSObjects ($config -match " $policy ") "vpn alwaysONProfile" "-alwaysONProfileName")
     }
 }
 
@@ -1508,7 +1712,7 @@ if ($NSObjects."tm sessionPolicy") {
 
 
 # Get KCD Accounts from AAA Session Actions
-if ($NSObjects."tm trafficAction") {
+if ($NSObjects."tm sessionAction") {
     foreach ($profile in $NSObjects."tm sessionAction") {
         addNSObject "aaa kcdAccount" (getNSObjects ($config -match "tm sessionAction $profile ") "aaa kcdAccount" "-kcdAccount")
     }
@@ -1716,6 +1920,14 @@ if ($NSObjects."ssl policy") {
 }
 
 
+# Get SSL Log Profiles from SSL Actions
+if ($NSObjects."ssl action") {
+    foreach ($ssl in $NSObjects."ssl action") {
+        addNSObject "ssl logprofile" (getNSObjects ($config -match " $ssl ") "ssl logprofile" "-ssllogprofile")
+    }
+}
+
+
 # Get SSL Global Settings
 if ($config -match "enable ns feature.* ssl") {
     $NSObjects."ssl parameter" = @("enable ns feature ssl")
@@ -1725,7 +1937,14 @@ if ($config -match "enable ns feature.* ssl") {
 addNSObject "ssl parameter" ($config -match "set ssl parameter") "ssl parameter"
 addNSObject "ssl parameter" ($config -match "set ssl fips") "ssl parameter"
 addNSObject "ssl parameter" ($config -match "set ssl profile ns_default_ssl_profile_backend") "ssl parameter"
-    
+
+
+# Get Ciphers from SSL profiles
+if ($NSObjects."ssl profile") {
+    foreach ($ssl in $NSObjects."ssl profile") {
+        addNSObject "ssl cipher" (getNSObjects ($config -match "bind ssl profile $ssl ") "ssl cipher" "-cipherName")
+    }
+}
 
 # Get Global Policy Parameters
 addNSObject "policy param" ($config -match "set policy param") "policy param"
@@ -1778,6 +1997,9 @@ if ($outputFile -and ($outputFile -ne "screen")) {
     "# Extracted Config for $vservers`n" 
 }
 
+# DNS
+if ($NSObjects."dns nameServer" ) { outputObjectConfig "DNS Name Servers" "dns nameServer" }
+
 # Policy Expression Components and Profiles Output
 if ($NSObjects."ns acl" ) { outputObjectConfig "Global ACLs" "ns acl" "raw" }
 if ($NSObjects."ns variable" ) { outputObjectConfig "Variables" "ns variable" "raw" }
@@ -1795,11 +2017,16 @@ if ($NSObjects."policy stringmap" ) { outputObjectConfig "Policy String Maps" "p
 if ($NSObjects."policy urlset" ) { outputObjectConfig "Policy URL Sets" "policy urlset" }
 if ($NSObjects."policy httpCallout" ) { outputObjectConfig "HTTP Callouts" "policy httpCallout" }
 if ($NSObjects."dns addRec" ) { outputObjectConfig "DNS Address Records" "dns addRec" }
+if ($NSObjects."dns nsRec" ) { outputObjectConfig "DNS Name Server Records" "dns nsRec"}
+if ($NSObjects."dns cnameRec" ) { outputObjectConfig "DNS CNAME Records" "dns cnameRec"}
+if ($NSObjects."dns soaRec" ) { outputObjectConfig "DNS SOA Records" "dns soaRec"}
 if ($NSObjects."ns tcpProfile" ) { outputObjectConfig "TCP Profiles" "ns tcpProfile" }
 if ($NSObjects."ns httpProfile" ) { outputObjectConfig "HTTP Profiles" "ns httpProfile" }
 if ($NSObjects."db dbProfile" ) { outputObjectConfig "Database Profiles" "db dbProfile" }
 if ($NSObjects."netProfile" ) { outputObjectConfig "Net Profiles" "netProfile" }
 if ($NSObjects."ns trafficDomain" ) { outputObjectConfig "Traffic Domains" "ns trafficDomain" }
+if ($NSObjects."ipset" ) { outputObjectConfig "IP Sets" "ipset" }
+if ($NSObjects."analytics profile" ) { outputObjectConfig "Analytics Profiles" "analytics profile" }
 
 
 # Policies Output
@@ -1878,9 +2105,14 @@ if ($NSObjects."ssl cert" ) { outputObjectConfig "Certs" "ssl cert" "raw" `
     -explainText "Get certificate files from /nsconfig/ssl" }
 if ($NSObjects."ssl link" ) { outputObjectConfig "Cert Links" "ssl link" "raw" }
 if ($NSObjects."ssl profile" ) { outputObjectConfig "SSL Profiles" "ssl profile" }
+if ($NSObjects."ssl logprofile" ) { outputObjectConfig "SSL Log Profiles" "ssl logprofile" }
+if ($NSObjects."ssl action" ) { outputObjectConfig "SSL Actions" "ssl action" }
+if ($NSObjects."ssl policy" ) { outputObjectConfig "SSL Policies" "ssl policy" }
 
 
 # AAA Output
+if ($NSObjects."vpn portaltheme" ) { outputObjectConfig "Portal Themes" "vpn portaltheme" `
+    -explainText "Portal Theme customizations are not in the NetScaler config file and instead are stored in /var/netscaler/logon/themes/{ThemeName} "}
 if ($NSObjects."authentication param" ) { outputObjectConfig "AAA Global Settings" "authentication param" "raw" }
 if ($NSObjects."authorization policy" ) { outputObjectConfig "Authorization Policies" "authorization policy" }
 if ($NSObjects."authorization policylabel" ) { outputObjectConfig "Authorization Policies" "authorization policylabel" }
@@ -1889,14 +2121,24 @@ if ($NSObjects."authentication ldapAction" ) { outputObjectConfig "LDAP Actions"
 if ($NSObjects."authentication ldapPolicy" ) { outputObjectConfig "LDAP Policies" "authentication ldapPolicy" }
 if ($NSObjects."authentication radiusAction" ) { outputObjectConfig "RADIUS Actions" "authentication radiusAction" }
 if ($NSObjects."authentication radiusPolicy" ) { outputObjectConfig "RADIUS Policies" "authentication radiusPolicy" }
+if ($NSObjects."authentication OAuthAction" ) { outputObjectConfig "OAuth Actions" "authentication OAuthAction" }
+if ($NSObjects."authentication samlAction" ) { outputObjectConfig "SAML Actions" "authentication samlAction" }
+if ($NSObjects."authentication certAction" ) { outputObjectConfig "Cert Actions" "authentication certAction" }
+if ($NSObjects."authentication dfaAction" ) { outputObjectConfig "Delegaged Forms Authentication Actions" "authentication dfaAction" }
+if ($NSObjects."authentication epaAction" ) { outputObjectConfig "Endpoint Analysis Actions" "authentication epaAction" }
+if ($NSObjects."authentication negotiateAction" ) { outputObjectConfig "Negotiate (Kerberos) Actions" "authentication negotiateAction" }
+if ($NSObjects."authentication storefrontAuthAction" ) { outputObjectConfig "StorefrontAuth Actions" "authentication storefrontAuthAction" }
+if ($NSObjects."authentication tacacsAction" ) { outputObjectConfig "TACACS Actions" "authentication tacacsAction" }
+if ($NSObjects."authentication webAuthAction" ) { outputObjectConfig "Web Auth Actions" "authentication webAuthAction" }
+if ($NSObjects."authentication samlPolicy" ) { outputObjectConfig "SAML Authentication Policies" "authentication samlPolicy" }
 if ($NSObjects."authentication policy" ) { outputObjectConfig "Advanced Authentication Policies" "authentication policy" }
 if ($NSObjects."authentication loginSchema" ) { outputObjectConfig "Login Schemas" "authentication loginSchema" }
 if ($NSObjects."authentication loginSchemaPolicy" ) { outputObjectConfig "Login Schema Policies" "authentication loginSchemaPolicy" }
 if ($NSObjects."authentication policylabel" ) { outputObjectConfig "Authentication Policy Labels" "authentication policylabel" }
-if ($NSObjects."authentication authnProfile" ) { outputObjectConfig "Authentication Profiles" "authentication authnProfile" }
 if ($NSObjects."tm sessionAction" ) { outputObjectConfig "AAA Session Profiles" "tm sessionAction" }
 if ($NSObjects."tm sessionPolicy" ) { outputObjectConfig "AAA Session Policies" "tm sessionPolicy" }
 if ($NSObjects."authentication vserver" ) { outputObjectConfig "Authentication Virtual Servers" "authentication vserver" }
+if ($NSObjects."authentication authnProfile" ) { outputObjectConfig "Authentication Profiles" "authentication authnProfile" }
 
 
 # Load Balancing output
@@ -1912,6 +2154,7 @@ if ($NSObjects."lb group" ) { outputObjectConfig "Persistency Group" "lb group" 
 
 
 # Content Switching Output
+if ($NSObjects."cs parameter" ) { outputObjectConfig "Content Switching Parameters" "cs parameter" "raw" }
 if ($NSObjects."cs action" ) { outputObjectConfig "Content Switching Actions" "cs action" }
 if ($NSObjects."cs policy" ) { outputObjectConfig "Content Switching Policies" "cs policy" }
 if ($NSObjects."cs policylabels" ) { outputObjectConfig "Content Switching Policy Labels" "cs policylabels" }
@@ -1919,6 +2162,8 @@ if ($NSObjects."cs policylabels" ) { outputObjectConfig "Content Switching Polic
 
 # NetScaler Gateway Output
 if ($NSObjects."vpn intranetApplication" ) { outputObjectConfig "NetScaler Gateway Intranet Applications" "vpn intranetApplication" }
+if ($NSObjects."aaa preauthenticationaction" ) { outputObjectConfig "Preauthentication Profiles" "aaa preauthenticationaction" }
+if ($NSObjects."aaa preauthenticationpolicy" ) { outputObjectConfig "Preauthentication Policies" "aaa preauthenticationpolicy" }
 if ($NSObjects."vpn eula" ) { outputObjectConfig "NetScaler Gateway EULA" "vpn eula" }
 if ($NSObjects."vpn clientlessAccessProfile" ) { outputObjectConfig "NetScaler Gateway Clientless Access Profiles" "vpn clientlessAccessProfile" }
 if ($NSObjects."vpn clientlessAccessPolicy" ) { outputObjectConfig "NetScaler Gateway Clientless Access Policies" "vpn clientlessAccessPolicy" }
@@ -1927,6 +2172,7 @@ if ($NSObjects."vpn pcoipProfile" ) { outputObjectConfig "NetScaler Gateway PCoI
 if ($NSObjects."vpn pcoipVserverProfile" ) { outputObjectConfig "NetScaler Gateway VServer PCoIP Profiles" "vpn pcoipVserverProfile" }
 if ($NSObjects."vpn trafficAction" ) { outputObjectConfig "NetScaler Gateway Traffic Profiles" "vpn trafficAction" }
 if ($NSObjects."vpn trafficPolicy" ) { outputObjectConfig "NetScaler Gateway Traffic Policies" "vpn trafficPolicy" }
+if ($NSObjects."vpn alwaysONProfile" ) { outputObjectConfig "NetScaler Gateway AlwaysON Profiles" "vpn alwaysONProfile" }
 if ($NSObjects."vpn sessionAction" ) { outputObjectConfig "NetScaler Gateway Session Profiles" "vpn sessionAction" }
 if ($NSObjects."vpn sessionPolicy" ) { outputObjectConfig "NetScaler Gateway Session Policies" "vpn sessionPolicy" }
 if ($NSObjects."ica accessprofile" ) { outputObjectConfig "NetScaler Gateway SmartControl Access Profiles" "ica accessprofile" }
@@ -1934,8 +2180,6 @@ if ($NSObjects."ica action" ) { outputObjectConfig "NetScaler Gateway SmartContr
 if ($NSObjects."ica policy" ) { outputObjectConfig "NetScaler Gateway SmartControl Policies" "ica policy" }
 if ($NSObjects."vpn url" ) { outputObjectConfig "NetScaler Gateway Bookmarks" "vpn url" }
 if ($NSObjects."vpn parameter" ) { outputObjectConfig "NetScaler Gateway Global Settings" "vpn parameter" "raw" }
-if ($NSObjects."vpn portaltheme" ) { outputObjectConfig "Portal Themes" "vpn portaltheme" `
-    -explainText "Portal Theme customizations are not in the NetScaler config file and instead are stored in /var/netscaler/logon/themes/{ThemeName} "}
 if ($NSObjects."vpn nextHopServer" ) { outputObjectConfig "NetScaler Gateway Next Hop Servers" "vpn nextHopServer" }
 if ($NSObjects."vpn vserver" ) { outputObjectConfig "NetScaler Gateway Virtual Servers" "vpn vserver" }
 if ($NSObjects."vpn global" ) { outputObjectConfig "NetScaler Gateway Global Bindings" "vpn global" "raw" }
@@ -1944,6 +2188,8 @@ if ($NSObjects."aaa group" ) { outputObjectConfig "AAA Groups" "aaa group" }
 
 # GSLB Output
 if ($NSObjects."adns service" ) { outputObjectConfig "ADNS Services" "adns service" "raw" }
+if ($NSObjects."gslb site" ) { outputObjectConfig "GSLB Sites" "gslb site" }
+if ($NSObjects."ns rpcNode" ) { outputObjectConfig "GSLB RPC Nodes" "ns rpcNode" }
 if ($NSObjects."dns view" ) { outputObjectConfig "DNS Views" "dns view" }
 if ($NSObjects."dns action" ) { outputObjectConfig "DNS Actions" "dns action" }
 if ($NSObjects."dns policy" ) { outputObjectConfig "DNS Policies" "dns policy" }
@@ -1968,7 +2214,18 @@ if ($outputFile -and ($outputFile -ne "screen")) {
 }
 
 if ($textEditor -and ($outputFile -and ($outputFile -ne "screen"))) {    
+
     # Open Text Editor
-    write-host "`nOpening Output file $outputFile using $textEditor ..."
-    start-process -FilePath $textEditor -ArgumentList $outputFile
+
+    if (Test-Path $textEditor -PathType Leaf){
+
+        write-host "`nOpening Output file `"$outputFile`" using `"$textEditor`" ..."
+
+        start-process -FilePath $textEditor -ArgumentList $outputFile
+
+    } else { 
+        write-host "`nText Editor not found: `"$textEditor`"" 
+        write-host "`nCan't open output file: `"$outputFile`""
+    }
+
 }
