@@ -1,0 +1,11 @@
+
+
+enable ns feature responder
+
+add responder action http_https_rsp_act redirect "\"https://\" + http.req.hostname.HTTP_URL_SAFE + http.REQ.URL.PATH_AND_QUERY.HTTP_URL_SAFE"
+add responder policy http_https_rsp_pol HTTP.REQ.IS_VALID http_https_rsp_act
+
+add lb monitor local_ping_mon PING -LRTM ENABLED -destIP 127.0.0.1
+add service always_up_svc 1.2.3.4 HTTP 80 -gslb NONE -maxClient 0 -maxReq 0 -cip ENABLED dummy -usip NO -sp OFF -cltTimeout 180 -svrTimeout 360 -CKA NO -TCPB NO -CMP YES
+
+bind lb monitor local_ping_mon always_up_svc
