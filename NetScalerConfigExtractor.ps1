@@ -18,10 +18,10 @@ param (
     # If set to "", then the script will prompt for a file. Clicking cancel will output to the screen.
     #$outputFile = ""
     #$outputFile = "screen"
-    [string]$outputFile = "$env:userprofile\Downloads\nsconfig.conf",
+    [string]$outputFile = "c:\temp\nsconfig.conf",
 
     # Optional text editor to open saved output file - text editor should handle UNIX line endings (e.g. Wordpad or Notepad++)
-    [string]$textEditor = "c:\Program Files (x86)\Notepad++\notepad++.exe",
+    [string]$textEditor = "c:\Program Files\Notepad++\notepad++.exe",
 
     # Optional get CSW vserver Binds for selected LB and/or VPN virtual server
     [switch]$cswBind
