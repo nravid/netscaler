@@ -18,9 +18,9 @@ set appfw profile web.foo.bar_waf_prf -starturLclosure OFF -refererHeaderCheck o
 ^(?i)[\x26\x3C\x3E\x2B\x2F\x2D\x3D\dA-Za-z]+$
 ^[\x26\x2B\x2F\x2D\x3D\dA-Za-z]+$
 
-^(?i)https://(|plmobilecert|plmobile|plmobilecerttest|plmobiltest)\.foo\.com/account.*$
-^(?i)https://(|plmobilecert|plmobile|plmobilecerttest|plmobiletest)\.foo\.com/content.*$
-^(?i)https://(|plmobilecert|plmobile|plmobilecerttest|plmobiletest)\.foo\.com/scripts.*$
+^(?i)https?://(|plmobilecert|plmobile|plmobilecerttest|plmobiltest)\.foo\.com/account.*$
+^(?i)https?://(|plmobilecert|plmobile|plmobilecerttest|plmobiletest)\.foo\.com/content.*$
+^(?i)https?://(|plmobilecert|plmobile|plmobilecerttest|plmobiletest)\.foo\.com/scripts.*$
 
 rm appfw learningdata solr-dmz.foo.bar_waf_prf
 
