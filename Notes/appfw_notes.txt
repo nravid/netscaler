@@ -46,6 +46,10 @@ appfw_post_body_extract_formid: 1
 appfw_post_body_yield:  1
 
 
+
+  Version: 10.20 57.24
+
+
 You can try the following:
 Run command
 nsapimgr -s appfw_post_body_scan_limit=10240
