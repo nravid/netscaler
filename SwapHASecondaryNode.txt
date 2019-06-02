@@ -17,7 +17,7 @@ saveconf
 
 From SDX Console:
 Shutdown Old Secondary Node
-
+shutdown -p now
 
 From Primary:
 sho ha node
