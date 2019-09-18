@@ -12,8 +12,8 @@ start nstrace -filter "vsvrname == webmail.foo.bar_csw_443_grn" -size 0 -link EN
 
 start nstrace -filter "vsvrname == easmailprod-relay.foo.bar_vip_trm" -size 0 -link ENABLE -time 3600
 
-
-
+CURL Command for getting CIPHERs
+curl https://192.168.1.1 -k -v
 
 
 start nstrace -filter "vsvrname == fooweb.foo.bar_csw_trm" -size 0 -link ENABLE -time 3600
