@@ -54,7 +54,11 @@ From Secondary:
 sho ha node
 
 From Primary:
-sync ha files all
+sync ha files all_plus_misc
+
+sho ha node
+
+force ha sync -force -save yes
 
 sho ha node
 
