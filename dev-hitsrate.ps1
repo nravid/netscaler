@@ -15,7 +15,7 @@ ForEach ($dc in $dclist) {
 
     Connect-NetScaler -Hostname $OLDNsip -Credential $Credential
 
-$devvips = Get-NSLBVirtualServer | Where-Object {$_.name -like '*.qa1.aqrcap*' } | select-object name | Sort-Object -Property name
+$devvips = Get-NSLBVirtualServer | Where-Object {$_.name -like '*.qa1.foocap*' } | select-object name | Sort-Object -Property name
 
 foreach ($vip in $devvips) {
     $RestURI = "http://" + $OLDNsip + "/nitro/v1/stat/lbvserver?args=name:" + $vip.name
