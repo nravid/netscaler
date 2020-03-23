@@ -1,0 +1,22 @@
+set ssl parameter -defaultProfile ENABLED
+
+create ssl dhparam DH_Key_SSLLabs.key 2048 -gen 5
+
+add ssl profile custom_ssllabs_fe_profile -dh ENABLED -dhFile "/nsconfig/ssl/DH_Key_SSLLabs.key" -sessReuse ENABLED -sessTimeout 120 -tls1 DISABLED -tls11 DISABLED -tls13 ENABLED -denySSLReneg NONSECURE -HSTS ENABLED -maxage 157680000 -zeroRttEarlyData ENABLED
+
+add ssl cipher custom_ssllabs_cipher
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.3-CHACHA20-POLY1305-SHA256 -cipherPriority 1
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.3-AES128-GCM-SHA256 -cipherPriority 2
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.3-AES256-GCM-SHA384 -cipherPriority 3
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.2-ECDHE-ECDSA-AES256-SHA384 -cipherPriority 4
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.2-ECDHE-ECDSA-AES256-GCM-SHA384 -cipherPriority 5
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1-ECDHE-ECDSA-AES256-SHA -cipherPriority 6
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.2-DHE-RSA-AES256-GCM-SHA384 -cipherPriority 7
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.2-ECDHE-ECDSA-AES128-GCM-SHA256 -cipherPriority 8
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.2-ECDHE-RSA-CHACHA20-POLY1305 -cipherPriority 9
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.2-ECDHE-ECDSA-CHACHA20-POLY1305 -cipherPriority 10
+bind ssl cipher custom_ssllabs_cipher -cipherName TLS1.2-ECDHE-RSA-AES256-GCM-SHA384 -cipherPriority 11
+
+unbind ssl profile custom_ssllabs_fe_profile -cipherName DEFAULT
+bind ssl profile custom_ssllabs_fe_profile -cipherName custom_ssllabs_cipher -cipherPriority 1
+bind ssl profile custom_ssllabs_fe_profile -eccCurveName ALL
