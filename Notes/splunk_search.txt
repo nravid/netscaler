@@ -21,3 +21,22 @@ rex field=_raw "EVENT (?<event>\w+)(?<garbage1>\s\d{10}\s\d\s\:\s{2}Monitor\sMon
 
 rex field=_raw "EVENT (?<event>\w+)(?<garbage1>\s\d{9,}\s\d\s\:\s{2}Monitor\s(Mon|DBSMon)ServiceBinding_)(?<srvname>\w+\.\w+\.\w+)(?<garbage2>\:\d+_\()(?<mon>(?!\().+(?=\)\())(?<garbage3>\)\()(?<svcgrpname>((?!\().+?(?=\?|$))?)" | rex field=source (?<netscaler>(?!\/logdata\/NetScaler\/)\w+?(?=\.log))
 
+Troubleshoot HDX Insight:
+index="citrix" "default ICA Message" NOT "Skip Code [0]"
+
+index="citrix" event_source=SSLVPN (event_name=TCPCONNSTAT OR event_name=HTTPREQUEST)
+
+index="citrix" ICASTART applicationName="Windows 10" | rex field=_raw "^(?:[^\-\n]*\-){10}\s+\w+:\w+\s+(?P<UserName>\w+)"
+index="citrix" ICASTART | rex field=_raw "^(?:[^\-\n]*\-){10}\s+\w+:\w+\s+(?P<UserName>\w+)" | stats count by UserName, applicationName, ns_name
+index="citrix" ICASTART | rex field=_raw "^(?:[^\-\n]*\-){10}\s+\w+:\w+\s+(?P<UserName>\w+)" | search UserName=mh* | stats  count by UserName, applicationName, ns_name
+index="citrix" Status="ERROR: Invalid username or password" | stats count by Remote_ip, User, ns_name, host
+
+index=palo_alto eventtype=pan_firewall src_ip="172.30.126.95" action=allowed OR blocked session_end_reason="policy-deny"
+
+index=palo_alto eventtype=pan_firewall src_ip="172.30.161.4*" OR "172.30.158.4*" OR "172.30.1.1*" OR "172.30.126.95" OR "172.30.126.100" OR "10.140.138.82" src_port=123  | stats count by src_ip, dest_ip
+
+
+index="citrix"
+| stats count, max(_time) as firstseen,min(_time) as lastseen by dvc
+| convert ctime(lastseen),ctime(firstseen)
+| sort firstseen
