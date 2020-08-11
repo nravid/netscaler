@@ -1,49 +1,43 @@
-﻿
-$admcred = Get-Credential
-$admip="192.168.137.25"
 
-$admgetipblockuri = "http://"+$admip+"/nitro/v1/config/ip_block?onerror=continue"
+function Get-TimeStamp {
+    return "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
+}
+
+$logfile = '\\naspmhome\technology\Ravid_Nate\Private\Appsense\new_adm_log.txt'
+$admip="192.77.88.227"
+
+
+"$(Get-TimeStamp) *** START Location Add" | Out-File -FilePath $logfile -Append -Encoding ascii
+
+$admcred = Get-Credential
+
+$admgetipblockuri = "https://ctxadm.foo.com/nitro/v1/config/ip_block?onerror=continue"
+
+$locationpath = '\\naspmhome\technology\Ravid_Nate\Private\Appsense\internal_location_adm_input2.txt'
+$subnetdata = Import-Csv -Path $locationpath
+
+
+
+
+ForEach ($subnet in $subnetdata) {
+
+$subnetname = $subnet.locreg + "_" + $subnet.start_ip
 
 $admipblock2 = @{"ip_block" = 
     @{
-     "name" = 'Test2'
-     "start_ip" = '192.168.1.200' 
-     "end_ip" = '192.168.1.210'
-     "country" = 'United States' 
-     "region" = 'Florida'
-     "city" = 'Miami'
+     "name" = $subnetname
+     "start_ip" = $subnet.start_ip 
+     "end_ip" = $subnet.end_ip
+     "country" = $subnet.loccnt 
+     "region" = $subnet.locreg
+     "city" = $subnet.loccity
       }} | ConvertTo-Json
 $admipjson2 = 'object=' + $admipblock2
 
-
-
-
-$admipblock = @{"ip_block" = 
-    @{
-     "custom_city" = $false
-     "country_code" = 'US'
-     "end_ip" = '192.168.1.110'
-     "latitude" = 30.36 
-     "start_ip_num" = 3232235876
-     "id" = 'Test'
-     "longitude" = -81.43
-     "custom_region" = $false
-     "end_ip_num" = 3232235886
-     "region_code" = 'FL'
-     "region" = 'Florida'
-     "name" = 'Test'
-     "description" = '' 
-     "city" = 'Atlantic Beach'
-     "country" = 'United States' 
-     "start_ip" = '192.168.1.100' 
-     "custom_country" = $false 
-      }} | ConvertTo-Json
-$admipjson = 'object=' + $admipblock
-
-
+"$(Get-TimeStamp) *** ADD Location $subnetname"  | Out-File -FilePath $logfile -Append -Encoding ascii
 
 $result =  Invoke-RestMethod -Uri $admgetipblockuri -Credential $admcred -Body $admipjson2 -Method Post -ContentType 'application/json'
 
+} # Subnet Loop
 
-
-
+"$(Get-TimeStamp) *** End Location Add" | Out-File -FilePath $logfile -Append -Encoding ascii
