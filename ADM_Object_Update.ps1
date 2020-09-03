@@ -3,7 +3,7 @@ function Get-TimeStamp {
     return "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
 }
 
-$logfile = '\\naspmhome\technology\Ravid_Nate\Private\Appsense\new_adm_log.txt'
+$logfile = '\\dfspath\technology\Ravid_Nate\Private\Appsense\new_adm_log.txt'
 $admip="192.77.88.227"
 
 
@@ -13,7 +13,7 @@ $admcred = Get-Credential
 
 $admgetipblockuri = "https://ctxadm.foo.com/nitro/v1/config/ip_block?onerror=continue"
 
-$locationpath = '\\naspmhome\technology\Ravid_Nate\Private\Appsense\internal_location_adm_input2.txt'
+$locationpath = '\\dfspath\technology\Ravid_Nate\Private\Appsense\internal_location_adm_input2.txt'
 $subnetdata = Import-Csv -Path $locationpath
 
 
