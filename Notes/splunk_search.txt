@@ -31,9 +31,9 @@ index="citrix" ICASTART | rex field=_raw "^(?:[^\-\n]*\-){10}\s+\w+:\w+\s+(?P<Us
 index="citrix" ICASTART | rex field=_raw "^(?:[^\-\n]*\-){10}\s+\w+:\w+\s+(?P<UserName>\w+)" | search UserName=mh* | stats  count by UserName, applicationName, ns_name
 index="citrix" Status="ERROR: Invalid username or password" | stats count by Remote_ip, User, ns_name, host
 
-index=palo_alto eventtype=pan_firewall src_ip="172.30.126.95" action=allowed OR blocked session_end_reason="policy-deny"
+index=palo_alto eventtype=pan_firewall src_ip="192.255.126.95" action=allowed OR blocked session_end_reason="policy-deny"
 
-index=palo_alto eventtype=pan_firewall src_ip="172.30.161.4*" OR "172.30.158.4*" OR "172.30.1.1*" OR "172.30.126.95" OR "172.30.126.100" OR "10.140.138.82" src_port=123  | stats count by src_ip, dest_ip
+index=palo_alto eventtype=pan_firewall src_ip="192.255.161.4*" OR "192.255.158.4*" OR "192.255.1.1*" OR "192.255.126.95" OR "192.255.126.100" OR "192.255.138.82" src_port=123  | stats count by src_ip, dest_ip
 
 
 index="citrix"
