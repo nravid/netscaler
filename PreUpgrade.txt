@@ -1,0 +1,11 @@
+save config
+sho hostname
+sho ver
+sho run | grep -i "set interface"
+stat interface
+sho run | grep -i vlan
+sho route
+stat lb vserver
+stat gslb service -fullValues
+stat vpn vserver
+sho vpn icaconnection -summary
