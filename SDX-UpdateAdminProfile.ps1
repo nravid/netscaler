@@ -22,6 +22,7 @@ $sdxputuri = "http://"+$sdxaddr+"/nitro/v1/config/ns/"+$nsid
 
 $nsadminprof = @{ }
 $nsadminprof = ConvertTo-Json @{"ns" = @{
+                "id" = $nsid
                 "profile_name" = "nsroot_2021"
                 "user_profile_name" = "nsroot_2021"
                 }}#nsadminprof
