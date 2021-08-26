@@ -2,7 +2,13 @@ index=netscaler source="/logdata/NetScaler/nt0pnsext.log"  SSLVPN (ICAEND OR ICA
 
 find /var/log -name "ns.log*.gz" -exec zgrep -i "SSLVPN LOGIN" {} +
 
+find /var/log -name "ns.log*.gz" -exec zgrep -i "EVENT STATECHANGE" {} +
+
+
+
 nsconmsg -K /var/nslog/newnslog -d event | grep -i "DOWN;" -s disptime=1
+
+nsconmsg -K /var/nslog/newnslog -d current -g ssl_tot_sslInfo_TLS
 
 CONNECTION.SRCIP.EQ(47.23.175.50)||CONNECTION.SRCIP.EQ(107.77.226.157)||CONNECTION.SRCIP.EQ(107.77.223.77)
 
