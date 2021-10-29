@@ -1,0 +1,8 @@
+add rewrite action rw_actn_invalidate_cookie_logoff insert_http_header Set-Cookie "\"logoff=true;Path=/;expires=Wednesday, 09-Nov-1999 23:12:40 GMT;Secure\""
+add rewrite policy rw_pol_invalidate_cookie_logoff "HTTP.REQ.URL.TO_LOWER.CONTAINS(\"logoff\") || HTTP.REQ.URL.TO_LOWER.CONTAINS(\"logout\")" rw_actn_invalidate_cookie_logoff
+bind lb vserver lbvs_kronos-test.mlhs.org_HTTPS -policyName rw_pol_invalidate_cookie_logoff -priority 70 -gotoPriorityExpression NEXT -type RESPONSE
+
+
+add responder action resp_actn_logout redirect "\"https://foo.bar/logout.html\"" -responseStatusCode 302
+add responder policy resp_pol_logout "HTTP.REQ.URL.PATH_AND_QUERY.CONTAINS(\"cmd=logout\") || HTTP.REQ.URL.PATH_AND_QUERY.CONTAINS(\"cmd=expire\")" resp_actn_logout
+bind lb vserver lbvs_foo.bar_SSL -policyName resp_pol_logout -priority 100 -gotoPriorityExpression END -type REQUEST
