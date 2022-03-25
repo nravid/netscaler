@@ -4,7 +4,7 @@ find /var/log -name "ns.log*.gz" -exec zgrep -i "SSLVPN LOGIN" {} +
 
 find /var/log -name "ns.log*.gz" -exec zgrep -i "EVENT STATECHANGE" {} +
 
-
+tail -F /var/log/ns.log | egrep --color -i "[username]|[ip_address]"
 
 nsconmsg -K /var/nslog/newnslog -d event | grep -i "DOWN;" -s disptime=1
 
