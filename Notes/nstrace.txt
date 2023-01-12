@@ -1,3 +1,24 @@
+
+WIndows Tracing:
+netsh trace start capture=yes tracefile=c:\temp\NetTrace.etl
+netsh trace start capture=yes tracefile=c:\temp\NetTrace.etl maxsize=512 filemode=circular overwrite=yes report=no correlation=no IPv4.SourceAddress=(192.168.1.55,192.168.1.5) IPv4.DestinationAddress=(192.168.1.55,192.168.1.5) Ethernet.Type=IPv4
+
+
+netsh trace stop
+
+
+COnvert ETL to PCAP:
+https://github.com/microsoft/etl2pcapng
+
+
+
+Add Columns:
+VLAN, NICNO
+
+
+
+tcp.time_delta >0.1
+
 index=netscaler source="/logdata/NetScaler/nt0pnsext.log"  SSLVPN (ICAEND OR ICASTART OR TCU_DHT)
 
 find /var/log -name "ns.log*.gz" -exec zgrep -i "SSLVPN LOGIN" {} +
