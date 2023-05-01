@@ -875,7 +875,7 @@ CATCH {
 }#CATCH WinSCP Session Open
 
 TRY {
-    Send-WinSCPItem -Path "\\foo.bar\shares\FS001\Citrix\Citrix\SSL\AQRCapital_Wildcard\*" -Destination "/flash/nsconfig/ssl/*" -WinSCPSession $winscpsession
+    Send-WinSCPItem -Path "\\foo.bar\shares\FS001\Citrix\Citrix\SSL\Capital_Wildcard\*" -Destination "/flash/nsconfig/ssl/*" -WinSCPSession $winscpsession
 }#TRY WinSCP Copy
 CATCH {
       "$(Get-TimeStamp) FAILED Copy Wildcard Certificates Session Copy " + $_.Exception.Message | Out-File -filepath $logfile -Append -Encoding ascii
