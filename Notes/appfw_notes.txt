@@ -1,4 +1,8 @@
 
+
+StartURL: Security Check Settings - Enable "Enforce URL Closure"
+  The URL must match an entry in the Start URL list, unless the Enforce URL Closure parameter is enabled. If you enable this parameter, a user who clicks a link on your Web site is connected to the target of that link.
+
 index=netscaler eventtype=app-fw | rex field=_raw "msg=(?<msg>.*)cn1.*cs1=(?<cs1>.*)cs2.*act=(?<act>.*)" | top msg,cs1,act
 
 

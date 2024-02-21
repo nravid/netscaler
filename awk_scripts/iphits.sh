@@ -1,9 +1,13 @@
 
-#! /bin/sh
+#!/bin/sh
 
-ipaddr=""
+ipaddr=$1
 
-read -p "Enter IP Address:" ipaddr
+if [ "$#" -ne 1 ];
+then
+	echo "This script requires an IP Address."
+	read -p "Enter IP Address:" ipaddr
+fi
 
 echo $ipaddr
 
