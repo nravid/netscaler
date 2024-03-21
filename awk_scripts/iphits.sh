@@ -2,6 +2,7 @@
 #!/bin/sh
 
 ipaddr=$1
+ipuniq="${ipaddr}uniq.txt"
 
 if [ "$#" -ne 1 ];
 then
@@ -13,6 +14,6 @@ echo $ipaddr
 
 nstcpdump.sh -G 60 dst host $ipaddr > /var/tmp/$ipaddr.txt
 
-awk '{print $3}' /var/tmp/$ipaddr.txt | awk -F '.' '{OFS="."} {print $1,$2,$3,$4}' | sort -u > /var/tmp/$ipaddruniq.txt
+awk '{print $3}' /var/tmp/$ipaddr.txt | awk -F '.' '{OFS="."} {print $1,$2,$3,$4}' | sort -u > /var/tmp/$ipuniq
 
-cat /var/tmp/$ipaddruniq.txt
+cat /var/tmp/$ipuniq

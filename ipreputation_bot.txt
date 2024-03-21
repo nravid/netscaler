@@ -1,0 +1,89 @@
+
+enable ns feature BOT reputation
+
+### IP Reputation Troubleshooting
+### sh reputation settings
+### shell ls -l /var/nslog/iprep
+### shell cat /var/log/iprep.log
+### shell grep -i "err msg" /var/log/iprep.log
+
+
+### In GUI: Clone Bot Management Signature as gothamtg_bot_signatures.json
+
+
+add audit messageaction aud_msg_act_patset_blocked CRITICAL "\"Client: \" + CLIENT.IP.SRC + \" matched IP Block Pattern Set\""
+add audit messageaction aud_msg_act_blocked_ipreputation CRITICAL "\"Client: \" + CLIENT.IP.SRC + \" matched IP Reputation trying to connect to: https://\" + HTTP.REQ.HOSTNAME + HTTP.REQ.URL"
+add audit messageaction aud_msg_act_rate_limiting CRITICAL "\"Client: \" + CLIENT.IP.SRC + \" hit the rate limiting: https://\" + HTTP.REQ.HOSTNAME + HTTP.REQ.URL"
+add audit messageaction aud_msg_act_geo_drop CRITICAL "\"Client: \" + CLIENT.IP.SRC + \" from \" + CLIENT.IP.SRC.LOCATION + \" dropped.\""
+add audit messageaction aud_msg_act_bot_drop CRITICAL "\"Client: \" + CLIENT.IP.SRC + \" from \" + CLIENT.IP.SRC.LOCATION + \" dropped by BOT.\""
+
+add bot profile bot_prf_iprep -signature gothamtg_bot_signatures.json -ipReputation ON
+bind bot profile bot_prf_iprep -ipReputation -category IP -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category SPAM_SOURCES -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category SCANNERS -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category DOS -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category REPUTATION -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category PHISHING -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category MOBILE_THREATS -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category WINDOWS_EXPLOITS -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category WEB_ATTACKS -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category BOTNETS -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category PROXY -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category NETWORK -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category TOR_PROXY -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category CLOUD -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category CLOUD_AWS -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category CLOUD_GCP -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category CLOUD_AZURE -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category CLOUD_ORACLE -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category CLOUD_IBM -enabled ON -action DROP
+bind bot profile bot_prf_iprep -ipReputation -category CLOUD_SALESFORCE -enabled ON -action DROP
+set bot settings -dfpRequestLimit 5 -signatureAutoUpdate ON
+add bot policy bot_pol_iprep -rule "HTTP.REQ.HOSTNAME.TO_LOWER.CONTAINS(\"gothamtg.com\")" -profileName bot_prf_iprep -logAction aud_msg_act_bot_drop
+bind bot global -policyName bot_pol_iprep -priority 100 -gotoPriorityExpression END -type REQ_DEFAULT
+
+
+add policy patset patset_blocked_ips
+bind policy patset patset_blocked_ips 185.196.8.66
+bind policy patset patset_blocked_ips 85.209.176.117
+bind policy patset patset_blocked_ips 20.119.53.110
+bind policy patset patset_blocked_ips 91.92.253.112
+bind policy patset patset_blocked_ips 194.33.191.222
+bind policy patset patset_blocked_ips 3.106.118.110
+bind policy patset patset_blocked_ips 18.139.118.203
+bind policy patset patset_blocked_ips 34.223.95.106
+bind policy patset patset_blocked_ips 94.156.67.26
+bind policy patset patset_blocked_ips 18.139.118.201
+bind policy patset patset_blocked_ips 52.202.255.79
+bind policy patset patset_blocked_ips 34.223.95.108
+bind policy patset patset_blocked_ips 18.139.118.202
+bind policy patset patset_blocked_ips 52.215.168.133
+bind policy patset patset_blocked_ips 3.106.118.111
+bind policy patset patset_blocked_ips 52.215.168.132
+bind policy patset patset_blocked_ips 34.223.95.107
+bind policy patset patset_blocked_ips 52.202.255.87
+bind policy patset patset_blocked_ips 3.106.118.109
+bind policy patset patset_blocked_ips 52.215.168.134
+bind policy patset patset_blocked_ips 141.98.85.109
+bind policy patset patset_blocked_ips 52.202.255.82
+bind policy patset patset_blocked_ips 91.92.254.39
+bind policy patset patset_blocked_ips 91.92.254.44
+bind policy patset patset_blocked_ips 198.74.56.46
+bind policy patset patset_blocked_ips 216.48.127.130
+bind policy patset patset_blocked_ips 118.193.33.130
+bind policy patset patset_blocked_ips 129.226.196.127
+bind policy patset patset_blocked_ips 34.201.116.214
+bind policy patset patset_blocked_ips 212.102.40.218
+bind policy patset patset_blocked_ips 43.163.220.47
+bind policy patset patset_blocked_ips 54.25.30.85
+bind policy patset patset_blocked_ips 118.123.105.85
+bind policy patset patset_blocked_ips 152.32.234.39
+bind policy patset patset_blocked_ips 184.105.247.194
+bind policy patset patset_blocked_ips 91.202.233.3
+
+add ns limitIdentifier rat_lmt_id_gateway -threshold 30 -selectorName Top_CLIENTS
+
+add responder policy rsp_pol_blocked_ips "pol_exp_srcip.EQUALS_ANY(\"patset_blocked_ips\")" RESET -logAction aud_msg_act_patset_blocked
+add responder policy rsp_pol_drop_blocked_ips_ipreputation CLIENT.IP.SRC.IPREP_IS_MALICIOUS DROP -logAction aud_msg_act_blocked_ipreputation
+add responder policy rsp_pol_drop_rate_limiting "SYS.CHECK_LIMIT(\"rat_lmt_id_gateway\")" DROP -logAction aud_msg_act_rate_limiting
+add responder policy rsp_pol_drop_by_location "client.IP.SRC.MATCHES_LOCATION(\"*.RU.*.*.*.*\")||client.IP.SRC.MATCHES_LOCATION(\"*.KP.*.*.*.*\")||client.IP.SRC.MATCHES_LOCATION(\"*.CH.*.*.*.*\")||client.IP.SRC.MATCHES_LOCATION(\"*.BG.*.*.*.*\")" DROP -logAction aud_msg_act_geo_drop
