@@ -12,7 +12,7 @@ https://github.com/microsoft/etl2pcapng
 
 
 
-Add Columns:
+Add Columns (Column Preferences... 802.1Q):
 VLAN, NICNO
 
 
@@ -24,6 +24,10 @@ index=netscaler source="/logdata/NetScaler/nt0pnsext.log"  SSLVPN (ICAEND OR ICA
 find /var/log -name "ns.log*.gz" -exec zgrep -i "SSLVPN LOGIN" {} +
 
 find /var/log -name "ns.log*.gz" -exec zgrep -i "EVENT STATECHANGE" {} +
+
+find /var/log -name "ns.log*.gz" -exec zgrep -i "login_fail" {} + | awk '{print $1,$2,$3,$4,$18,$21}'
+
+grep -i "login_fail" ns.log | awk '{print $1,$2,$3,$4,$18,$21}'
 
 zcat /var/log/ns.log.##.gz | more
 
